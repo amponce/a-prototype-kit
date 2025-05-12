@@ -1,0 +1,16 @@
+.PromptCard {
+  transform: translateY(0);
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.IconContainer {
+  transition: transform 0.3s ease;
+}
+
+.PromptCard:hover .IconContainer {
+  transform: scale(1.15);
+} 
