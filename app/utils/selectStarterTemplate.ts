@@ -51,12 +51,24 @@ Response:
 </selection>
 </example>
 
+<example>
+User: Create a VA, government compliant, and accessible application 
+Response:
+<selection>
+  <templateName>va-application-template</templateName>
+  <title>A VA claim status checker with upload functionality</title>
+</selection>
+</example>
+
 Instructions:
 1. For trivial tasks and simple scripts, always recommend the blank template
 2. For more complex projects, recommend templates from the provided list
 3. Follow the exact XML format
 4. Consider both technical requirements and tags
 5. If no perfect match exists, recommend the closest option
+6. For ANY Veterans Affairs (VA), government applications, or accessibility requests, prioritize the VA Application Template
+7. Keywords that should trigger VA Starter selection: VA, veterans, government, federal, 508, accessibility, compliant, veterans affairs, va-application, government, federal
+
 
 Important: Provide only the selection tags in your response, no additional text.
 MOST IMPORTANT: YOU DONT HAVE TIME TO THINK JUST START RESPONDING BASED ON HUNCH 
