@@ -184,7 +184,7 @@ export default function ModelSelectionTab() {
                 >
                   <span className={provider.icon || 'i-ph:brain'}></span>
                 </div>
-                <span className="text-sm font-medium">{provider.name}</span>
+                <span className="text-sm font-medium text-bolt-elements-textPrimary">{provider.name}</span>
               </div>
             ))}
           </div>
@@ -216,7 +216,7 @@ export default function ModelSelectionTab() {
                   onClick={() => handleModelChange(model.name)}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm">{model.label || model.name}</div>
+                    <div className="font-medium text-sm text-bolt-elements-textPrimary">{model.label || model.name}</div>
                     <div className="text-xs text-bolt-elements-textSecondary truncate">{model.name}</div>
                   </div>
                   {model.name === selectedModel && (

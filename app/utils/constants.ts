@@ -26,6 +26,14 @@ PROVIDER_LIST.forEach((provider) => {
 
 export const STARTER_TEMPLATES: Template[] = [
   {
+    name: 'va-application-template',
+    label: 'Veterans Affairs Starter',
+    description: 'Veterans Affairs (VA) compliant starter template with accessibility and security best practices',
+    githubRepo: 'amponce/va-application-template',
+    tags: ['government', 'veterans-affairs', 'va', 'accessibility', '508-compliant', 'security'],
+    icon: 'i-bolt:stars',
+  },
+  {
     name: 'bolt-astro-basic',
     label: 'Astro Basic',
     description: 'Lightweight Astro starter template for building fast static websites',

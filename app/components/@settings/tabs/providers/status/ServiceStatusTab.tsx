@@ -700,7 +700,7 @@ const ServiceStatusTab = () => {
               className={classNames(
                 'w-8 h-8 flex items-center justify-center rounded-lg',
                 'bg-bolt-elements-background-depth-3',
-                'text-purple-500',
+                'text-blue-500',
               )}
             >
               <TbActivityHeartbeat className="w-5 h-5" />
@@ -745,7 +745,7 @@ const ServiceStatusTab = () => {
                 'flex-1 px-3 py-1.5 rounded-lg text-sm max-w-[200px]',
                 'bg-bolt-elements-background-depth-3 border border-bolt-elements-borderColor',
                 'text-bolt-elements-textPrimary',
-                'focus:outline-none focus:ring-2 focus:ring-purple-500/30',
+                'focus:outline-none focus:ring-2 focus:ring-blue-500/30',
               )}
             >
               <option value="">Select Provider</option>
@@ -764,7 +764,7 @@ const ServiceStatusTab = () => {
                 'flex-1 px-3 py-1.5 rounded-lg text-sm',
                 'bg-bolt-elements-background-depth-3 border border-bolt-elements-borderColor',
                 'text-bolt-elements-textPrimary placeholder-bolt-elements-textTertiary',
-                'focus:outline-none focus:ring-2 focus:ring-purple-500/30',
+                'focus:outline-none focus:ring-2 focus:ring-blue-500/30',
               )}
             />
             <button

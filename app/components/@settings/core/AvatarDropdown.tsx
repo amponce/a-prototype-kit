@@ -6,7 +6,7 @@ import { profileStore } from '~/lib/stores/profile';
 import type { TabType, Profile } from './types';
 
 const BetaLabel = () => (
-  <span className="px-1.5 py-0.5 rounded-full bg-blue-600/10 dark:bg-blue-600/20 text-[10px] font-medium text-purple-600 dark:text-purple-400 ml-2">
+  <span className="px-1.5 py-0.5 rounded-full bg-blue-600/10 dark:bg-blue-600/20 text-[10px] font-medium text-blue-600 dark:text-blue-400 ml-2">
     BETA
   </span>
 );

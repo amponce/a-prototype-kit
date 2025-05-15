@@ -5,8 +5,9 @@ export const EXAMPLE_PROMPTS = [
   {
     text: 'Build a VA landing page with a contact form',
     fullPrompt: `Create a VA landing page with a contact form that includes:
+    Full width desktop version 
     Minimal VA header and footer
-    Hero section with VA primary blue background (#0071bc)
+    Full width hero section with VA primary blue background (#0071bc)
     Six service cards for Health Care, Disability Benefits, Education & Training, Home Loans, Life Insurance, and Career Development
     Testimonial section with 3 veteran success stories
     Statistics section showing VA impact numbers

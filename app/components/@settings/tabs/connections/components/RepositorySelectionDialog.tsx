@@ -58,15 +58,15 @@ function StatsDialog({ isOpen, onClose, onConfirm, stats, isLargeRepo }: StatsDi
                     <p className="text-sm text-[#666666] dark:text-[#999999]">Repository Statistics:</p>
                     <div className="space-y-2 text-sm text-[#111111] dark:text-white">
                       <div className="flex items-center gap-2">
-                        <span className="i-ph:files text-purple-500 w-4 h-4" />
+                        <span className="i-ph:files text-blue-500 w-4 h-4" />
                         <span>Total Files: {stats.totalFiles}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="i-ph:database text-purple-500 w-4 h-4" />
+                        <span className="i-ph:database text-blue-500 w-4 h-4" />
                         <span>Total Size: {formatSize(stats.totalSize)}</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="i-ph:code text-purple-500 w-4 h-4" />
+                        <span className="i-ph:code text-blue-500 w-4 h-4" />
                         <span>
                           Languages:{' '}
                           {Object.entries(stats.languages)
@@ -78,13 +78,13 @@ function StatsDialog({ isOpen, onClose, onConfirm, stats, isLargeRepo }: StatsDi
                       </div>
                       {stats.hasPackageJson && (
                         <div className="flex items-center gap-2">
-                          <span className="i-ph:package text-purple-500 w-4 h-4" />
+                          <span className="i-ph:package text-blue-500 w-4 h-4" />
                           <span>Has package.json</span>
                         </div>
                       )}
                       {stats.hasDependencies && (
                         <div className="flex items-center gap-2">
-                          <span className="i-ph:tree-structure text-purple-500 w-4 h-4" />
+                          <span className="i-ph:tree-structure text-blue-500 w-4 h-4" />
                           <span>Has dependencies</span>
                         </div>
                       )}
@@ -225,7 +225,7 @@ function GitHubAuthDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                           href="https://github.com/settings/tokens"
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-purple-500 hover:underline"
+                          className="text-blue-500 hover:underline"
                         >
                           github.com/settings/tokens
                         </a>
@@ -240,7 +240,7 @@ function GitHubAuthDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                             type="radio"
                             checked={tokenType === 'classic'}
                             onChange={() => setTokenType('classic')}
-                            className="w-3.5 h-3.5 accent-purple-500"
+                            className="w-3.5 h-3.5 accent-blue-500"
                           />
                           <span className="text-sm text-[#111111] dark:text-white">Classic</span>
                         </label>
@@ -249,7 +249,7 @@ function GitHubAuthDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
                             type="radio"
                             checked={tokenType === 'fine-grained'}
                             onChange={() => setTokenType('fine-grained')}
-                            className="w-3.5 h-3.5 accent-purple-500"
+                            className="w-3.5 h-3.5 accent-blue-500"
                           />
                           <span className="text-sm text-[#111111] dark:text-white">Fine-grained</span>
                         </label>
@@ -757,7 +757,7 @@ export function RepositorySelectionDialog({ isOpen, onClose, onSelect }: Reposit
         toast.error(
           <div className="space-y-2">
             <p>{errorMessage}</p>
-            <button onClick={() => setShowAuthDialog(true)} className="underline font-medium block text-purple-500">
+            <button onClick={() => setShowAuthDialog(true)} className="underline font-medium block text-blue-500">
               Learn how to access private repositories
             </button>
           </div>,

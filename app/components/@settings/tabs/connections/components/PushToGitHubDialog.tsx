@@ -327,7 +327,7 @@ export function PushToGitHubDialog({ isOpen, onClose, onPush }: PushToGitHubDial
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="mx-auto w-12 h-12 rounded-xl bg-bolt-elements-background-depth-3 flex items-center justify-center text-purple-500"
+                    className="mx-auto w-12 h-12 rounded-xl bg-bolt-elements-background-depth-3 flex items-center justify-center text-blue-500"
                   >
                     <div className="i-ph:github-logo w-6 h-6" />
                   </motion.div>
@@ -372,7 +372,7 @@ export function PushToGitHubDialog({ isOpen, onClose, onPush }: PushToGitHubDial
                     initial={{ scale: 0.8 }}
                     animate={{ scale: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="w-10 h-10 rounded-xl bg-bolt-elements-background-depth-3 flex items-center justify-center text-purple-500"
+                    className="w-10 h-10 rounded-xl bg-bolt-elements-background-depth-3 flex items-center justify-center text-blue-500"
                   >
                     <div className="i-ph:git-branch w-5 h-5" />
                   </motion.div>
@@ -431,13 +431,13 @@ export function PushToGitHubDialog({ isOpen, onClose, onPush }: PushToGitHubDial
                           >
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <div className="i-ph:git-repository w-4 h-4 text-purple-500" />
-                                <span className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-purple-500">
+                                <div className="i-ph:git-repository w-4 h-4 text-blue-500" />
+                                <span className="text-sm font-medium text-gray-900 dark:text-white group-hover:text-blue-500">
                                   {repo.name}
                                 </span>
                               </div>
                               {repo.private && (
-                                <span className="text-xs px-2 py-1 rounded-full bg-blue-600/10 text-purple-500">
+                                <span className="text-xs px-2 py-1 rounded-full bg-blue-600/10 text-blue-500">
                                   Private
                                 </span>
                               )}
@@ -486,7 +486,7 @@ export function PushToGitHubDialog({ isOpen, onClose, onPush }: PushToGitHubDial
                       id="private"
                       checked={isPrivate}
                       onChange={(e) => setIsPrivate(e.target.checked)}
-                      className="rounded border-[#E5E5E5] dark:border-[#1A1A1A] text-purple-500 focus:ring-purple-500 dark:bg-[#0A0A0A]"
+                      className="rounded border-[#E5E5E5] dark:border-[#1A1A1A] text-blue-500 focus:ring-blue-500 dark:bg-[#0A0A0A]"
                     />
                     <label htmlFor="private" className="text-sm text-gray-600 dark:text-gray-400">
                       Make repository private

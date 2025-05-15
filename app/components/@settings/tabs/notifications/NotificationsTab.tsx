@@ -92,7 +92,7 @@ const NotificationsTab = () => {
     if (type === 'update') {
       return {
         icon: 'i-ph:arrow-circle-up',
-        color: 'text-purple-500 dark:text-purple-400',
+        color: 'text-blue-500 dark:text-blue-400',
         bg: 'hover:bg-blue-600/10 dark:hover:bg-blue-600/20',
       };
     }
@@ -209,11 +209,11 @@ const NotificationsTab = () => {
                 >
                   <div className="mr-3 flex h-5 w-5 items-center justify-center">
                     <div
-                      className={classNames(option.icon, 'text-lg group-hover:text-purple-500 transition-colors')}
+                      className={classNames(option.icon, 'text-lg group-hover:text-blue-500 transition-colors')}
                       style={{ color: option.color }}
                     />
                   </div>
-                  <span className="group-hover:text-purple-500 transition-colors">{option.label}</span>
+                  <span className="group-hover:text-blue-500 transition-colors">{option.label}</span>
                 </DropdownMenu.Item>
               ))}
             </DropdownMenu.Content>
@@ -232,7 +232,7 @@ const NotificationsTab = () => {
             'transition-all duration-200',
           )}
         >
-          <span className="i-ph:trash text-lg text-gray-500 dark:text-gray-400 group-hover:text-purple-500 transition-colors" />
+          <span className="i-ph:trash text-lg text-gray-500 dark:text-gray-400 group-hover:text-blue-500 transition-colors" />
           Clear All
         </button>
       </div>

@@ -90,7 +90,7 @@ const BETA_TABS = new Set<TabType>(['task-manager', 'service-status', 'update', 
 
 const BetaLabel = () => (
   <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-full bg-blue-600/10 dark:bg-blue-600/20">
-    <span className="text-[10px] font-medium text-purple-600 dark:text-purple-400">BETA</span>
+    <span className="text-[10px] font-medium text-blue-600 dark:text-blue-400">BETA</span>
   </div>
 );
 
@@ -106,7 +106,7 @@ const AnimatedSwitch = ({ checked, onCheckedChange, id, label }: AnimatedSwitchP
           'transition-all duration-300 ease-[cubic-bezier(0.87,_0,_0.13,_1)]',
           'bg-gray-200 dark:bg-gray-700',
           'data-[state=checked]:bg-blue-600',
-          'focus:outline-none focus:ring-2 focus:ring-purple-500/20',
+          'focus:outline-none focus:ring-2 focus:ring-blue-500/20',
           'cursor-pointer',
           'group',
         )}
