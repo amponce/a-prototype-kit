@@ -4,9 +4,15 @@ export const MAX_TOKENS = 64000;
 
 // Map of models to their maximum context window sizes
 export const MODEL_MAX_TOKENS: Record<string, number> = {
-  'claude-3-7-sonnet-20250219': 128000,
-  'claude-3-5-sonnet-latest': 200000,
-  'anthropic.claude-3-5-sonnet-20241022-v2:0': 200000,
+  // Claude models (output token limits)
+  'claude-3-7-sonnet-20250219': 64000,
+  'claude-3-5-sonnet-latest': 64000,
+  'claude-3-5-sonnet-20240620': 64000,
+  'claude-3-5-haiku-latest': 40000,
+  'claude-3-opus-latest': 64000,
+  'claude-3-sonnet-20240229': 64000,
+  'claude-3-haiku-20240307': 40000,
+  'anthropic.claude-3-5-sonnet-20241022-v2:0': 64000,
   'default': 64000,
 };
 
