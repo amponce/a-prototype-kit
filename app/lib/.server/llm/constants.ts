@@ -1,5 +1,7 @@
-// see https://docs.anthropic.com/en/docs/about-claude/models
-// Default max tokens to use if not specified in model config
+/*
+ * see https://docs.anthropic.com/en/docs/about-claude/models
+ * Default max tokens to use if not specified in model config
+ */
 export const MAX_TOKENS = 64000;
 
 // Map of models to their maximum context window sizes
@@ -13,7 +15,7 @@ export const MODEL_MAX_TOKENS: Record<string, number> = {
   'claude-3-sonnet-20240229': 64000,
   'claude-3-haiku-20240307': 40000,
   'anthropic.claude-3-5-sonnet-20241022-v2:0': 64000,
-  'default': 64000,
+  default: 64000,
 };
 
 // limits the number of model responses that can be returned in a single request

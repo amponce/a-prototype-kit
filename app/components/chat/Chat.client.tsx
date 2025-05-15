@@ -12,7 +12,7 @@ import { useMessageParser, usePromptEnhancer, useShortcuts, useSnapScroll } from
 import { description, useChatHistory } from '~/lib/persistence';
 import { chatStore } from '~/lib/stores/chat';
 import { workbenchStore } from '~/lib/stores/workbench';
-import { DEFAULT_MODEL, DEFAULT_PROVIDER, PROMPT_COOKIE_KEY, PROVIDER_LIST } from '~/utils/constants';
+import { PROMPT_COOKIE_KEY } from '~/utils/constants';
 import { cubicEasingFn } from '~/utils/easings';
 import { createScopedLogger, renderLogger } from '~/utils/logger';
 import { BaseChat } from './BaseChat';
@@ -131,19 +131,20 @@ export const ChatImpl = memo(
       (project) => project.id === supabaseConn.selectedProjectId,
     );
     const supabaseAlert = useStore(workbenchStore.supabaseAlert);
-    const { 
-      selectedModel, 
-      selectedProvider, 
+    const {
+      selectedModel,
+      selectedProvider,
       apiKeys,
       activeProviders,
-      updateSelectedModel, 
+      updateSelectedModel,
       updateSelectedProvider,
       contextOptimizationEnabled,
       promptId,
-      autoSelectTemplate
+      autoSelectTemplate,
     } = useSettings();
 
     const { showChat } = useStore(chatStore);
+    const isCurrentlyStreaming = useStore(streamingState);
 
     const [animationScope, animate] = useAnimate();
 
@@ -239,6 +240,11 @@ export const ChatImpl = memo(
     }, []);
 
     useEffect(() => {
+      // Add guard to prevent unnecessary updates
+      if (!messages || messages.length === 0) {
+        return;
+      }
+
       processSampledMessages({
         messages,
         initialMessages,
@@ -299,7 +305,10 @@ export const ChatImpl = memo(
 
     const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
       const messageContent = messageInput || input;
-      console.log('Chat.client.tsx sendMessage called with messageInput length:', messageInput ? messageInput.length : 0);
+      console.log(
+        'Chat.client.tsx sendMessage called with messageInput length:',
+        messageInput ? messageInput.length : 0,
+      );
 
       if (!messageContent?.trim()) {
         console.log('Empty message, not sending');
@@ -322,7 +331,7 @@ export const ChatImpl = memo(
           const { template, title } = await selectStarterTemplate({
             message: messageContent,
             model: selectedModel,
-            provider: activeProviders.find(p => p.name === selectedProvider) || currentProvider,
+            provider: activeProviders.find((p) => p.name === selectedProvider) || currentProvider,
           });
 
           if (template !== 'blank') {
@@ -497,16 +506,20 @@ export const ChatImpl = memo(
     };
 
     // Find the current provider object from activeProviders and properly cast it
-     const currentProvider = (activeProviders.find(p => p.name === selectedProvider) || activeProviders[0]) as ProviderInfo;
-     
-     // Remove this useEffect since we're using global state now
-     useEffect(() => {
-       const storedApiKeys = Cookies.get('apiKeys');
-       if (storedApiKeys) {
-         // We no longer need to set local state for apiKeys
-         // as we're using global state from useSettings
-       }
-     }, []);
+    const currentProvider = (activeProviders.find((p) => p.name === selectedProvider) ||
+      activeProviders[0]) as ProviderInfo;
+
+    // Remove this useEffect since we're using global state now
+    useEffect(() => {
+      const storedApiKeys = Cookies.get('apiKeys');
+
+      if (storedApiKeys) {
+        /*
+         * We no longer need to set local state for apiKeys
+         * as we're using global state from useSettings
+         */
+      }
+    }, []);
 
     return (
       <BaseChat
@@ -517,7 +530,10 @@ export const ChatImpl = memo(
         chatStarted={chatStarted}
         isStreaming={isLoading || fakeLoading}
         onStreamingChange={(streaming) => {
-          streamingState.set(streaming);
+          // Only update the global state if the value has changed to prevent recursive updates
+          if (streaming !== isCurrentlyStreaming) {
+            streamingState.set(streaming);
+          }
         }}
         enhancingPrompt={enhancingPrompt}
         promptEnhanced={promptEnhanced}

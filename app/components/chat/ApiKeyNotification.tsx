@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from '@remix-run/react';
+import { openControlPanel } from '~/lib/stores/controlPanel';
 
 interface ApiKeyNotificationProps {
   providerName: string;
@@ -44,15 +45,18 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
             </button>
           </div>
           <p className="text-sm text-bolt-elements-textSecondary mb-2">
-            To use {providerName}, please add your API key in settings. Without an API key, you won't be able to use the AI features.
+            To use {providerName}, please add your API key in the Control Panel. Without an API key, you won't be able to use the AI features.
           </p>
-          <Link 
-            to="/settings/ai-providers"
+          <button 
+            onClick={() => {
+              // Use the global function to open the control panel
+              openControlPanel();
+            }}
             className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors"
           >
-            <span>Add API Key</span>
+            <span>Open Control Panel</span>
             <span className="i-ph:arrow-right w-3.5 h-3.5" />
-          </Link>
+          </button>
         </div>
       </div>
     </div>

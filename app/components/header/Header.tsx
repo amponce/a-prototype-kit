@@ -23,7 +23,7 @@ export function Header() {
           <img src="/agilesix_logo.jpeg" alt="logo" className="w-[40px] inline-block hidden dark:block" />
         </a>
         <h1 className="text-3xl font-semibold text-accent flex items-center">PROTOTPYE KIT</h1>
-     </div>
+      </div>
       {chat.started && ( // Display ChatDescription and HeaderActionButtons only when the chat has started.
         <>
           <span className="flex-1 px-4 truncate text-center text-bolt-elements-textPrimary">

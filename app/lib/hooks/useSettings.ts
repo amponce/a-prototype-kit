@@ -116,7 +116,10 @@ export function useSettings(): UseSettingsReturn {
       .map(([_k, p]) => p);
 
     setActiveProviders(active);
-    console.log('Active providers:', active.map(p => p.name));
+    console.log(
+      'Active providers:',
+      active.map((p) => p.name),
+    );
     console.log('Selected model:', selectedModel);
     console.log('Selected provider:', selectedProvider);
   }, [providers, selectedModel, selectedProvider]);
@@ -198,13 +201,13 @@ export function useSettings(): UseSettingsReturn {
     updateModelStore(model);
     logStore.logSystem(`Selected model updated to ${model}`);
   }, []);
-  
+
   const updateSelectedProvider = useCallback((provider: string) => {
     console.log(`Updating selected provider to ${provider}`);
     updateProviderStore(provider);
     logStore.logSystem(`Selected provider updated to ${provider}`);
   }, []);
-  
+
   const updateApiKey = useCallback((provider: string, apiKey: string) => {
     updateApiKeyStore(provider, apiKey);
     logStore.logSystem(`API key updated for ${provider}`);

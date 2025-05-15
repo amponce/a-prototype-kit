@@ -346,7 +346,7 @@ export const updateSelectedProvider = (provider: string) => {
 export const updateApiKey = (provider: string, apiKey: string) => {
   const updatedKeys = { ...selectedApiKeysStore.get(), [provider]: apiKey };
   selectedApiKeysStore.set(updatedKeys);
-  
+
   // Store in cookies for persistence
   Cookies.set('apiKeys', JSON.stringify(updatedKeys));
 };
@@ -355,22 +355,25 @@ export const updateApiKey = (provider: string, apiKey: string) => {
 if (isBrowser) {
   try {
     const savedModel = localStorage.getItem('selectedModel');
+
     if (savedModel) {
       console.log('Initializing with saved model from localStorage:', savedModel);
       selectedModelStore.set(savedModel);
     } else {
       console.log('No saved model in localStorage, using default:', selectedModelStore.get());
     }
-    
+
     const savedProvider = localStorage.getItem('selectedProvider');
+
     if (savedProvider) {
       console.log('Initializing with saved provider from localStorage:', savedProvider);
       selectedProviderStore.set(savedProvider);
     } else {
       console.log('No saved provider in localStorage, using default:', selectedProviderStore.get());
     }
-    
+
     const savedApiKeys = Cookies.get('apiKeys');
+
     if (savedApiKeys) {
       try {
         const parsedKeys = JSON.parse(savedApiKeys);

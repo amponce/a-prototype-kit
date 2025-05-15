@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Switch } from '~/components/ui/Switch';
 import { useSettings } from '~/lib/hooks/useSettings';
 import { LOCAL_PROVIDERS, URL_CONFIGURABLE_PROVIDERS } from '~/lib/stores/settings';
@@ -14,12 +14,6 @@ import { providerBaseUrlEnvKeys } from '~/utils/constants';
 import { useToast } from '~/components/ui/use-toast';
 import { Progress } from '~/components/ui/Progress';
 import OllamaModelInstaller from './OllamaModelInstaller';
-import { Card } from '~/components/ui/Card';
-import { Input } from '~/components/ui/Input';
-import { Label } from '~/components/ui/Label';
-import { Button } from '~/components/ui/Button';
-
-
 
 // Add type for provider names to ensure type safety
 type ProviderName = 'Ollama' | 'LMStudio' | 'OpenAILike';
@@ -84,8 +78,6 @@ export default function LocalProvidersTab() {
   const [ollamaModels, setOllamaModels] = useState<OllamaModel[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [editingProvider, setEditingProvider] = useState<string | null>(null);
-  const [isOllamaRunning, setIsOllamaRunning] = useState(false);
-  const [isOllamaConnecting, setIsOllamaConnecting] = useState(false);
   const [envVarStatuses, setEnvVarStatuses] = useState<Record<string, { hasBaseUrl: boolean; hasApiKey: boolean }>>({});
   const { toast } = useToast();
 
@@ -162,23 +154,21 @@ export default function LocalProvidersTab() {
   useEffect(() => {
     // After filteredProviders is set, check for environment variables
     const statuses: Record<string, { hasBaseUrl: boolean; hasApiKey: boolean }> = {};
-    
+
     filteredProviders.forEach((provider) => {
       const providerInfo = providerBaseUrlEnvKeys[provider.name];
-      
-      const hasBaseUrl = !!providerInfo?.baseUrlKey && (
-        !!process.env[providerInfo.baseUrlKey] || 
-        !!import.meta.env[`VITE_${providerInfo.baseUrlKey}`]
-      );
-      
-      const hasApiKey = !!providerInfo?.apiTokenKey && (
-        !!process.env[providerInfo.apiTokenKey] || 
-        !!import.meta.env[`VITE_${providerInfo.apiTokenKey}`]
-      );
-      
+
+      const hasBaseUrl =
+        !!providerInfo?.baseUrlKey &&
+        (!!process.env[providerInfo.baseUrlKey] || !!import.meta.env[`VITE_${providerInfo.baseUrlKey}`]);
+
+      const hasApiKey =
+        !!providerInfo?.apiTokenKey &&
+        (!!process.env[providerInfo.apiTokenKey] || !!import.meta.env[`VITE_${providerInfo.apiTokenKey}`]);
+
       statuses[provider.name] = { hasBaseUrl, hasApiKey };
     });
-    
+
     setEnvVarStatuses(statuses);
   }, [filteredProviders]);
 
@@ -772,7 +762,7 @@ export default function LocalProvidersTab() {
                             </div>
                           )}
                         </div>
-                        
+
                         {envVarStatuses[provider.name]?.hasBaseUrl && (
                           <div className="mt-2 text-xs text-green-500">
                             <div className="flex items-center gap-1">

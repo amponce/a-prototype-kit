@@ -1,5 +1,4 @@
 import type { TabType } from './types';
-import type { TabVisibilityConfig } from './types';
 
 export const TAB_ICONS: Record<TabType, string> = {
   profile: 'i-ph:user-circle-duotone',

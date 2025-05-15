@@ -14,6 +14,9 @@ import { SendButton } from './SendButton.client';
 import { getApiKeysFromCookies } from './APIKeyManager';
 import Cookies from 'js-cookie';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { ControlPanel } from '~/components/@settings/core/ControlPanel';
+import { useStore } from '@nanostores/react';
+import { controlPanelOpen, closeControlPanel } from '~/lib/stores/controlPanel';
 
 import styles from './BaseChat.module.scss';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
@@ -26,6 +29,7 @@ import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import type { ProviderInfo } from '~/types/model';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { toast } from 'react-toastify';
+
 // import StarterTemplates from './StarterTemplates';
 import type { ActionAlert, SupabaseAlert, DeployAlert } from '~/types/actions';
 import DeployChatAlert from '~/components/deploy/DeployAlert';
@@ -122,7 +126,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [isListening, setIsListening] = useState(false);
     const [recognition, setRecognition] = useState<any | null>(null);
     const [transcript, setTranscript] = useState('');
-    const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [apiKeyMissing, setApiKeyMissing] = useState(false);
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     useEffect(() => {
@@ -203,6 +206,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     useEffect(() => {
       if (typeof window !== 'undefined') {
         let parsedApiKeys: Record<string, string> | undefined = {};
+        // We don't need to store the result since we're not using it
 
         try {
           const storedApiKeys = Cookies.get('apiKeys');
@@ -213,7 +217,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           console.error('Error parsing API keys:', error);
         }  
 
-        setIsModelLoading('all');
         fetch('/api/models')
           .then((response) => response.json())
           .then((data) => {
@@ -222,9 +225,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           })
           .catch((error) => {
             console.error('Error fetching model list:', error);
-          })
-          .finally(() => {
-            setIsModelLoading(undefined);
           });
       }
     }, []);
@@ -330,7 +330,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   Where ideas begin
                 </h1>
                 <p className="text-md lg:text-xl mb-8 text-bolt-elements-textSecondary animate-fade-in animation-delay-200">
-                  Bring ideas to life in seconds or get help on existing projects.
+                  Bring concepts to life in seconds or get help on existing projects.
                 </p>
               </div>
             )}
@@ -393,6 +393,12 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                   )}
                 </div>
                 {progressAnnotations && <ProgressCompilation data={progressAnnotations} />}
+                {!model && !chatStarted && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
+                    <strong>Tip:</strong> We recommend using Anthropic's Claude 3.7 model for the best experience. 
+                    Configure your model in Settings → Model Selection.
+                  </div>
+                )}
                 <div
                   className={classNames(
                     'bg-bolt-elements-background-depth-2 p-3 rounded-lg border border-bolt-elements-borderColor relative w-full max-w-chat mx-auto z-prompt',
@@ -430,9 +436,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     <rect className={classNames(styles.PromptEffectLine)} pathLength="100" strokeLinecap="round"></rect>
                     <rect className={classNames(styles.PromptShine)} x="48" y="24" width="70" height="1"></rect>
                   </svg>
-                  <div>
-                    {/* Model selection and API key management moved to Settings > Model Selection */}
-                  </div>
+                  <div>{/* Model selection and API key management moved to Settings > Model Selection */}</div>
                   <FilePreview
                     files={uploadedFiles}
                     imageDataList={imageDataList}
@@ -523,7 +527,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         minHeight: TEXTAREA_MIN_HEIGHT,
                         maxHeight: TEXTAREA_MAX_HEIGHT,
                       }}
-                      placeholder="How can a6 help you today?"
+                      placeholder={!model ? "How can a6 help you today? (Recommended model: Claude 3.7)" : "How can a6 help you today?"}
                       translate="no"
                     />
                     <ClientOnly>
@@ -585,7 +589,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                           disabled={!modelList || modelList.length === 0}
                         >
                           <div className={`i-ph:caret-${isModelSettingsCollapsed ? 'right' : 'down'} text-lg`} />
-                          {isModelSettingsCollapsed ? <span className="text-xs">{model}</span> : <span />}
+                          {isModelSettingsCollapsed ? (
+                            <span className="text-xs">{model || "Select a model (Claude 3.7 recommended)"}</span>
+                          ) : (
+                            !model ? <span className="text-xs text-amber-500">Model not set</span> : <span />
+                          )}
                         </IconButton>
                       </div>
                       {input.length > 3 ? (
@@ -631,8 +639,17 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           </ClientOnly>
         </div>
       </div>
-    );
+      );
 
-    return <Tooltip.Provider delayDuration={200}>{baseChat}</Tooltip.Provider>;
-  },
+  // Get control panel visibility state from global store
+  const isControlPanelOpen = useStore(controlPanelOpen);
+
+  return (
+    <Tooltip.Provider delayDuration={200}>
+      {baseChat}
+      {/* Control Panel that can be opened from anywhere in the app */}
+      <ControlPanel open={isControlPanelOpen} onClose={closeControlPanel} />
+    </Tooltip.Provider>
+  );
+},
 );

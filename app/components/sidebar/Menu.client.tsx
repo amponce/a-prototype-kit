@@ -13,7 +13,7 @@ import { binDates } from './date-binning';
 import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
 import { useStore } from '@nanostores/react';
-import { profileStore } from '~/lib/stores/profile';
+import { controlPanelOpen, closeControlPanel } from '~/lib/stores/controlPanel';
 
 const menuVariants = {
   closed: {
@@ -69,8 +69,8 @@ export const Menu = () => {
   const [list, setList] = useState<ChatHistoryItem[]>([]);
   const [open, setOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const profile = useStore(profileStore);
+  // Use the global store for control panel visibility
+  const isSettingsOpen = useStore(controlPanelOpen);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
@@ -309,12 +309,14 @@ export const Menu = () => {
   };
 
   const handleSettingsClick = () => {
-    setIsSettingsOpen(true);
+    // Use the global function to open the control panel
+    controlPanelOpen.set(true);
     setOpen(false);
   };
 
   const handleSettingsClose = () => {
-    setIsSettingsOpen(false);
+    // Use the global function to close the control panel
+    closeControlPanel();
   };
 
   const setDialogContentWithLogging = useCallback((content: DialogContent) => {
@@ -530,8 +532,6 @@ export const Menu = () => {
           </div>
         </div>
       </motion.div>
-
-      <ControlPanel open={isSettingsOpen} onClose={handleSettingsClose} />
     </>
   );
 };

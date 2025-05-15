@@ -67,8 +67,7 @@ Instructions:
 4. Consider both technical requirements and tags
 5. If no perfect match exists, recommend the closest option
 6. For ANY Veterans Affairs (VA), government applications, or accessibility requests, prioritize the VA Application Template
-7. Keywords that should trigger VA Starter selection: VA, veterans, government, federal, 508, accessibility, compliant, veterans affairs, va-application, government, federal
-
+7. Keywords that should trigger VA Starter selection: VA, component-library, veterans, government, federal, 508, accessibility, compliant, veterans affairs, va-application, government, federal
 
 Important: Provide only the selection tags in your response, no additional text.
 MOST IMPORTANT: YOU DONT HAVE TIME TO THINK JUST START RESPONDING BASED ON HUNCH 
@@ -93,18 +92,19 @@ const parseSelectedTemplate = (llmOutput: string): { template: string; title: st
   }
 };
 
-export const selectStarterTemplate = async (options: { 
-  message: string; 
-  model: string; 
+export const selectStarterTemplate = async (options: {
+  message: string;
+  model: string;
   provider: ProviderInfo | string;
 }) => {
   const { message, model, provider } = options;
-  
+
   // Ensure we have a proper provider object
-  const providerObj = typeof provider === 'string' 
-    ? { name: provider } as ProviderInfo  // Minimal cast to ProviderInfo
-    : provider;
-    
+  const providerObj =
+    typeof provider === 'string'
+      ? ({ name: provider } as ProviderInfo) // Minimal cast to ProviderInfo
+      : provider;
+
   const requestBody = {
     message,
     model,

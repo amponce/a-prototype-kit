@@ -3,6 +3,7 @@
  * - Drops calls that occur between sampling intervals
  * - Takes one call per sampling interval if available
  * - Captures the last call if no call was made during the interval
+ * - Prevents infinite recursive loops by checking for identical arguments
  *
  * @param fn The function to sample
  * @param sampleInterval How often to sample calls (in ms)
@@ -12,10 +13,25 @@ export function createSampler<T extends (...args: any[]) => any>(fn: T, sampleIn
   let lastArgs: Parameters<T> | null = null;
   let lastTime = 0;
   let timeout: NodeJS.Timeout | null = null;
+  let lastArgsJSON: string | null = null; // Track last args to prevent recursive loops
 
   // Create a function with the same type as the input function
   const sampled = function (this: any, ...args: Parameters<T>) {
     const now = Date.now();
+
+    // Skip if args are empty or undefined
+    if (!args || args.length === 0 || args.every((arg) => arg === undefined)) {
+      return;
+    }
+
+    // Prevent infinite loops by checking if args are identical to last call
+    const argsJSON = JSON.stringify(args);
+
+    if (argsJSON === lastArgsJSON) {
+      return;
+    }
+
+    lastArgsJSON = argsJSON;
     lastArgs = args;
 
     // If we're within the sample interval, just store the args
