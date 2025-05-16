@@ -88,14 +88,12 @@ const CloudProvidersTab = () => {
     const statuses: Record<string, { hasBaseUrl: boolean; hasApiKey: boolean }> = {};
     sorted.forEach((provider) => {
       const providerInfo = providerBaseUrlEnvKeys[provider.name];
-      const hasBaseUrl = !!providerInfo?.baseUrlKey && (
-        !!process.env[providerInfo.baseUrlKey] || 
-        !!import.meta.env[`VITE_${providerInfo.baseUrlKey}`]
-      );
-      const hasApiKey = !!providerInfo?.apiTokenKey && (
-        !!process.env[providerInfo.apiTokenKey] || 
-        !!import.meta.env[`VITE_${providerInfo.apiTokenKey}`]
-      );
+      const hasBaseUrl =
+        !!providerInfo?.baseUrlKey &&
+        (!!process.env[providerInfo.baseUrlKey] || !!import.meta.env[`VITE_${providerInfo.baseUrlKey}`]);
+      const hasApiKey =
+        !!providerInfo?.apiTokenKey &&
+        (!!process.env[providerInfo.apiTokenKey] || !!import.meta.env[`VITE_${providerInfo.apiTokenKey}`]);
       statuses[provider.name] = { hasBaseUrl, hasApiKey };
     });
     setEnvVarStatuses(statuses);

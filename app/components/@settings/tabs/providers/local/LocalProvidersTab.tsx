@@ -19,8 +19,6 @@ import { Input } from '~/components/ui/Input';
 import { Label } from '~/components/ui/Label';
 import { Button } from '~/components/ui/Button';
 
-
-
 // Add type for provider names to ensure type safety
 type ProviderName = 'Ollama' | 'LMStudio' | 'OpenAILike';
 
@@ -162,23 +160,21 @@ export default function LocalProvidersTab() {
   useEffect(() => {
     // After filteredProviders is set, check for environment variables
     const statuses: Record<string, { hasBaseUrl: boolean; hasApiKey: boolean }> = {};
-    
+
     filteredProviders.forEach((provider) => {
       const providerInfo = providerBaseUrlEnvKeys[provider.name];
-      
-      const hasBaseUrl = !!providerInfo?.baseUrlKey && (
-        !!process.env[providerInfo.baseUrlKey] || 
-        !!import.meta.env[`VITE_${providerInfo.baseUrlKey}`]
-      );
-      
-      const hasApiKey = !!providerInfo?.apiTokenKey && (
-        !!process.env[providerInfo.apiTokenKey] || 
-        !!import.meta.env[`VITE_${providerInfo.apiTokenKey}`]
-      );
-      
+
+      const hasBaseUrl =
+        !!providerInfo?.baseUrlKey &&
+        (!!process.env[providerInfo.baseUrlKey] || !!import.meta.env[`VITE_${providerInfo.baseUrlKey}`]);
+
+      const hasApiKey =
+        !!providerInfo?.apiTokenKey &&
+        (!!process.env[providerInfo.apiTokenKey] || !!import.meta.env[`VITE_${providerInfo.apiTokenKey}`]);
+
       statuses[provider.name] = { hasBaseUrl, hasApiKey };
     });
-    
+
     setEnvVarStatuses(statuses);
   }, [filteredProviders]);
 
@@ -772,7 +768,7 @@ export default function LocalProvidersTab() {
                             </div>
                           )}
                         </div>
-                        
+
                         {envVarStatuses[provider.name]?.hasBaseUrl && (
                           <div className="mt-2 text-xs text-green-500">
                             <div className="flex items-center gap-1">

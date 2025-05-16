@@ -37,10 +37,21 @@ const logger = createScopedLogger('Chat');
 
 export function Chat() {
   renderLogger.trace('Chat');
+  console.log('[Cloudflare Diagnostic] Chat component rendering');
+  
+  try {
+    console.log('[Cloudflare Diagnostic] Navigator info:', navigator.userAgent);
+    console.log('[Cloudflare Diagnostic] Window location:', window.location.href);
+  } catch (e) {
+    console.error('[Cloudflare Diagnostic] Error accessing browser APIs:', e);
+  }
 
   const { ready, initialMessages, storeMessageHistory, importChat, exportChat } = useChatHistory();
+  console.log('[Cloudflare Diagnostic] Chat history ready:', ready);
+  
   const title = useStore(description);
   useEffect(() => {
+    console.log('[Cloudflare Diagnostic] initialMessages effect triggered');
     workbenchStore.setReloadedMessages(initialMessages.map((m) => m.id));
   }, [initialMessages]);
 
@@ -131,16 +142,16 @@ export const ChatImpl = memo(
       (project) => project.id === supabaseConn.selectedProjectId,
     );
     const supabaseAlert = useStore(workbenchStore.supabaseAlert);
-    const { 
-      selectedModel, 
-      selectedProvider, 
+    const {
+      selectedModel,
+      selectedProvider,
       apiKeys,
       activeProviders,
-      updateSelectedModel, 
+      updateSelectedModel,
       updateSelectedProvider,
       contextOptimizationEnabled,
       promptId,
-      autoSelectTemplate
+      autoSelectTemplate,
     } = useSettings();
 
     const { showChat } = useStore(chatStore);
@@ -299,7 +310,10 @@ export const ChatImpl = memo(
 
     const sendMessage = async (_event: React.UIEvent, messageInput?: string) => {
       const messageContent = messageInput || input;
-      console.log('Chat.client.tsx sendMessage called with messageInput length:', messageInput ? messageInput.length : 0);
+      console.log(
+        'Chat.client.tsx sendMessage called with messageInput length:',
+        messageInput ? messageInput.length : 0,
+      );
 
       if (!messageContent?.trim()) {
         console.log('Empty message, not sending');
@@ -322,7 +336,7 @@ export const ChatImpl = memo(
           const { template, title } = await selectStarterTemplate({
             message: messageContent,
             model: selectedModel,
-            provider: activeProviders.find(p => p.name === selectedProvider) || currentProvider,
+            provider: activeProviders.find((p) => p.name === selectedProvider) || currentProvider,
           });
 
           if (template !== 'blank') {
@@ -497,16 +511,20 @@ export const ChatImpl = memo(
     };
 
     // Find the current provider object from activeProviders and properly cast it
-     const currentProvider = (activeProviders.find(p => p.name === selectedProvider) || activeProviders[0]) as ProviderInfo;
-     
-     // Remove this useEffect since we're using global state now
-     useEffect(() => {
-       const storedApiKeys = Cookies.get('apiKeys');
-       if (storedApiKeys) {
-         // We no longer need to set local state for apiKeys
-         // as we're using global state from useSettings
-       }
-     }, []);
+    const currentProvider = (activeProviders.find((p) => p.name === selectedProvider) ||
+      activeProviders[0]) as ProviderInfo;
+
+    // Remove this useEffect since we're using global state now
+    useEffect(() => {
+      const storedApiKeys = Cookies.get('apiKeys');
+
+      if (storedApiKeys) {
+        /*
+         * We no longer need to set local state for apiKeys
+         * as we're using global state from useSettings
+         */
+      }
+    }, []);
 
     return (
       <BaseChat

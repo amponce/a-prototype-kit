@@ -346,7 +346,7 @@ export const updateSelectedProvider = (provider: string) => {
 export const updateApiKey = (provider: string, apiKey: string) => {
   const updatedKeys = { ...selectedApiKeysStore.get(), [provider]: apiKey };
   selectedApiKeysStore.set(updatedKeys);
-  
+
   // Store in cookies for persistence
   Cookies.set('apiKeys', JSON.stringify(updatedKeys));
 };
@@ -354,23 +354,30 @@ export const updateApiKey = (provider: string, apiKey: string) => {
 // Initialize from localStorage/cookies if available
 if (isBrowser) {
   try {
+    console.log('[Cloudflare Diagnostic] Browser environment detected, initializing models');
+    console.log('[Cloudflare Diagnostic] Default model:', selectedModelStore.get());
+    console.log('[Cloudflare Diagnostic] Default provider:', selectedProviderStore.get());
+    
     const savedModel = localStorage.getItem('selectedModel');
+
     if (savedModel) {
-      console.log('Initializing with saved model from localStorage:', savedModel);
+      console.log('[Cloudflare Diagnostic] Initializing with saved model from localStorage:', savedModel);
       selectedModelStore.set(savedModel);
     } else {
-      console.log('No saved model in localStorage, using default:', selectedModelStore.get());
+      console.log('[Cloudflare Diagnostic] No saved model in localStorage, using default:', selectedModelStore.get());
     }
-    
+
     const savedProvider = localStorage.getItem('selectedProvider');
+
     if (savedProvider) {
-      console.log('Initializing with saved provider from localStorage:', savedProvider);
+      console.log('[Cloudflare Diagnostic] Initializing with saved provider from localStorage:', savedProvider);
       selectedProviderStore.set(savedProvider);
     } else {
-      console.log('No saved provider in localStorage, using default:', selectedProviderStore.get());
+      console.log('[Cloudflare Diagnostic] No saved provider in localStorage, using default:', selectedProviderStore.get());
     }
-    
+
     const savedApiKeys = Cookies.get('apiKeys');
+
     if (savedApiKeys) {
       try {
         const parsedKeys = JSON.parse(savedApiKeys);

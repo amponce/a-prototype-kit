@@ -6,20 +6,30 @@ interface ApiKeyNotificationProps {
 }
 
 export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ providerName }) => {
+  console.log('[Cloudflare Diagnostic] ApiKeyNotification rendering for provider:', providerName);
+  
   const [isDismissed, setIsDismissed] = useState(false);
 
   const storageKey = `dismissed_api_key_notification_${providerName}`;
-  
+
   // Check if notification was previously dismissed
   useEffect(() => {
-    const wasDismissed = localStorage.getItem(storageKey) === 'true';
-    if (wasDismissed) {
-      setIsDismissed(true);
+    try {
+      console.log('[Cloudflare Diagnostic] ApiKeyNotification checking localStorage');
+      const wasDismissed = localStorage.getItem(storageKey) === 'true';
+      console.log('[Cloudflare Diagnostic] ApiKeyNotification wasDismissed:', wasDismissed);
+
+      if (wasDismissed) {
+        setIsDismissed(true);
+      }
+    } catch (e) {
+      console.error('[Cloudflare Diagnostic] ApiKeyNotification localStorage error:', e);
     }
   }, [storageKey]);
 
   const handleDismiss = () => {
     setIsDismissed(true);
+
     // Store dismissal in localStorage to remember user preference
     localStorage.setItem(storageKey, 'true');
   };
@@ -44,9 +54,10 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
             </button>
           </div>
           <p className="text-sm text-bolt-elements-textSecondary mb-2">
-            To use {providerName}, please add your API key in settings. Without an API key, you won't be able to use the AI features.
+            To use {providerName}, please add your API key in settings. Without an API key, you won't be able to use the
+            AI features.
           </p>
-          <Link 
+          <Link
             to="/settings/ai-providers"
             className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors"
           >

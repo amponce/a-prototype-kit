@@ -26,6 +26,7 @@ import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import type { ProviderInfo } from '~/types/model';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { toast } from 'react-toastify';
+
 // import StarterTemplates from './StarterTemplates';
 import type { ActionAlert, SupabaseAlert, DeployAlert } from '~/types/actions';
 import DeployChatAlert from '~/components/deploy/DeployAlert';
@@ -125,6 +126,32 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [apiKeyMissing, setApiKeyMissing] = useState(false);
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
+    
+    // Diagnostic logging
+    useEffect(() => {
+      console.log('[Cloudflare Diagnostic] BaseChatInner mounted', { 
+        showChat, 
+        chatStarted, 
+        isStreaming,
+        hasMessages: !!messages && messages.length > 0,
+        apiKeyMissing
+      });
+      
+      if (typeof window !== 'undefined') {
+        try {
+          console.log('[Cloudflare Diagnostic] Window object exists');
+          console.log('[Cloudflare Diagnostic] localStorage test:', typeof localStorage);
+          console.log('[Cloudflare Diagnostic] API keys from cookies:', getApiKeysFromCookies());
+        } catch (e) {
+          console.error('[Cloudflare Diagnostic] Browser API error:', e);
+        }
+      }
+      
+      return () => {
+        console.log('[Cloudflare Diagnostic] BaseChatInner unmounted');
+      };
+    }, []);
+    
     useEffect(() => {
       if (data) {
         const progressList = data.filter(
@@ -177,41 +204,44 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     useEffect(() => {
       if (provider && typeof window !== 'undefined') {
         const storedApiKeys = getApiKeysFromCookies();
+
         // Check if there's a valid API key (not just the presence of the provider name)
         const hasApiKey = !!storedApiKeys[provider.name] && storedApiKeys[provider.name].length > 0;
-        
+
         // Check if this provider has an API key set
         const checkEnvApiKey = async () => {
           try {
             const response = await fetch(`/api/check-env-key?provider=${encodeURIComponent(provider.name)}`);
             const data = await response.json();
             const isEnvKeySet = (data as { isSet: boolean }).isSet;
-            
+
             // Update API key missing state - true if neither cookie nor env key is set
             setApiKeyMissing(!hasApiKey && !isEnvKeySet);
           } catch (error) {
             console.error('Failed to check environment API key:', error);
+
             // If we can't check env key, just use cookie check
             setApiKeyMissing(!hasApiKey);
           }
         };
-        
+
         checkEnvApiKey();
       }
     }, [provider]);
-    
+
     useEffect(() => {
       if (typeof window !== 'undefined') {
         let parsedApiKeys: Record<string, string> | undefined = {};
 
         try {
           const storedApiKeys = Cookies.get('apiKeys');
+
           if (storedApiKeys) {
             parsedApiKeys = JSON.parse(storedApiKeys);
           }
         } catch (error) {
           console.error('Error parsing API keys:', error);
-        }  
+        }
 
         setIsModelLoading('all');
         fetch('/api/models')
@@ -378,9 +408,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 })}
               >
                 <div className="bg-bolt-elements-background-depth-2">
-                  {apiKeyMissing && provider && (
-                    <ApiKeyNotification providerName={provider.name} />
-                  )}
+                  {apiKeyMissing && provider && <ApiKeyNotification providerName={provider.name} />}
                   {actionAlert && (
                     <ChatAlert
                       alert={actionAlert}
@@ -430,9 +458,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                     <rect className={classNames(styles.PromptEffectLine)} pathLength="100" strokeLinecap="round"></rect>
                     <rect className={classNames(styles.PromptShine)} x="48" y="24" width="70" height="1"></rect>
                   </svg>
-                  <div>
-                    {/* Model selection and API key management moved to Settings > Model Selection */}
-                  </div>
+                  <div>{/* Model selection and API key management moved to Settings > Model Selection */}</div>
                   <FilePreview
                     files={uploadedFiles}
                     imageDataList={imageDataList}

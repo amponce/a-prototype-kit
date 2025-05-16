@@ -79,17 +79,14 @@ Keep the implementation minimal using VA web components and utility classes.`,
 ];
 
 export function ExamplePrompts(sendMessage?: { (event: React.UIEvent, messageInput?: string): void | undefined }) {
-  if (!sendMessage) return null;
-  
+  if (!sendMessage) {
+    return null;
+  }
+
   const handleCardClick = (event: React.UIEvent, messageInput?: string) => {
     console.log('ExamplePrompts forwarding message:', messageInput);
     sendMessage(event, messageInput);
   };
 
-  return (
-    <PromptCards
-      prompts={EXAMPLE_PROMPTS}
-      sendMessage={handleCardClick}
-    />
-  );
+  return <PromptCards prompts={EXAMPLE_PROMPTS} sendMessage={handleCardClick} />;
 }

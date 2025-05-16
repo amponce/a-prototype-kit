@@ -9,7 +9,16 @@ export const meta: MetaFunction = () => {
   return [{ title: 'Bolt' }, { name: 'description', content: 'Talk with Bolt, an AI assistant from StackBlitz' }];
 };
 
-export const loader = () => json({});
+export const loader = () => {
+  console.log('[Cloudflare Diagnostic] Index route loader executed');
+  const env = {
+    NODE_ENV: process.env.NODE_ENV,
+    CF_PAGES: process.env.CF_PAGES,
+    CLOUDFLARE_ENV: process.env.CLOUDFLARE_ENV,
+  };
+  console.log('[Cloudflare Diagnostic] Environment:', JSON.stringify(env));
+  return json({});
+};
 
 /**
  * Landing page component for Bolt

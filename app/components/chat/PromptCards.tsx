@@ -23,7 +23,7 @@ export function PromptCards({ prompts, sendMessage }: PromptCardsProps) {
         {prompts.map((prompt, index) => {
           // Always use fullPrompt if available
           const messageToSend = prompt.fullPrompt || prompt.text;
-          
+
           return (
             <PromptCard
               key={index}
@@ -31,6 +31,7 @@ export function PromptCards({ prompts, sendMessage }: PromptCardsProps) {
               icon={PROMPT_ICONS[prompt.text as keyof typeof PROMPT_ICONS]}
               onClick={(event: React.MouseEvent) => {
                 console.log('Card clicked, sending full prompt text of length:', messageToSend.length);
+
                 // Cast event to React.UIEvent to match expected type
                 sendMessage(event as unknown as React.UIEvent, messageToSend);
               }}
