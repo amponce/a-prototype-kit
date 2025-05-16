@@ -28,11 +28,10 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
     localStorage.setItem(storageKey, 'true');
   };
 
-  // Using a simple client-side navigation approach
+  // Simplified approach that won't break on Cloudflare
   const handleOpenSettings = () => {
     if (typeof window !== 'undefined') {
-      // We'll use window.location directly which is safer for SSR
-      window.location.href = "#settings";
+      alert('To add API keys, please use the settings ⚙️ button in the bottom-left corner');
     }
   };
 

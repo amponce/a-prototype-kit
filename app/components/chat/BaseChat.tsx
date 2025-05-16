@@ -26,7 +26,6 @@ import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import type { ProviderInfo } from '~/types/model';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { toast } from 'react-toastify';
-import { ControlPanel } from '~/components/@settings/core/ControlPanel';
 
 // import StarterTemplates from './StarterTemplates';
 import type { ActionAlert, SupabaseAlert, DeployAlert } from '~/types/actions';
@@ -124,7 +123,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [isListening, setIsListening] = useState(false);
     const [recognition, setRecognition] = useState<any | null>(null);
     const [transcript, setTranscript] = useState('');
-    // Model loading state kept for future reference but not currently used
+    const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [apiKeyMissing, setApiKeyMissing] = useState(false);
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     
@@ -208,18 +207,19 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
 
     useEffect(() => {
       if (typeof window !== 'undefined') {
-        // Read API keys from cookies - used later for checking if keys are set
+        let parsedApiKeys: Record<string, string> | undefined = {};
+
         try {
-          // Cookies are accessed elsewhere via getApiKeysFromCookies()
           const storedApiKeys = Cookies.get('apiKeys');
-          if (!storedApiKeys) {
-            console.log('No API keys found in cookies');
+
+          if (storedApiKeys) {
+            parsedApiKeys = JSON.parse(storedApiKeys);
           }
         } catch (error) {
-          console.error('Error reading API keys:', error);
+          console.error('Error parsing API keys:', error);
         }
 
-        // Fetch available models
+        setIsModelLoading('all');
         fetch('/api/models')
           .then((response) => response.json())
           .then((data) => {
@@ -228,6 +228,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           })
           .catch((error) => {
             console.error('Error fetching model list:', error);
+          })
+          .finally(() => {
+            setIsModelLoading(undefined);
           });
       }
     }, []);
@@ -632,44 +635,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       </div>
     );
 
-    // Local state for settings panel - simple approach
-    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-    
-    // Listen for hash changes - if #settings is present, open settings
-    useEffect(() => {
-      if (typeof window !== 'undefined') {
-        const handleHashChange = () => {
-          if (window.location.hash === '#settings') {
-            setIsSettingsOpen(true);
-            // Clear the hash after opening
-            window.history.replaceState(null, '', window.location.pathname);
-          }
-        };
-        
-        // Check on initial load
-        handleHashChange();
-        
-        // Listen for hash changes
-        window.addEventListener('hashchange', handleHashChange);
-        
-        return () => {
-          window.removeEventListener('hashchange', handleHashChange);
-        };
-      }
-    }, []);
-
-    return (
-      <Tooltip.Provider delayDuration={200}>
-        {baseChat}
-        <ClientOnly>
-          {() => (
-            <ControlPanel 
-              open={isSettingsOpen} 
-              onClose={() => setIsSettingsOpen(false)}
-            />
-          )}
-        </ClientOnly>
-      </Tooltip.Provider>
-    );
+    return <Tooltip.Provider delayDuration={200}>{baseChat}</Tooltip.Provider>;
   },
 );
