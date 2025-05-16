@@ -326,7 +326,7 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
 }));
 
 // Add state for model and provider selection
-export const selectedModelStore = atom<string>('claude-3-5-sonnet-latest');
+export const selectedModelStore = atom<string>('claude-3-7-sonnet-20250219');
 export const selectedProviderStore = atom<string>('Anthropic');
 export const selectedApiKeysStore = map<Record<string, string>>({});
 

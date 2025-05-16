@@ -11,4 +11,4 @@ export function openControlPanel() {
 // Function to close the control panel
 export function closeControlPanel() {
   controlPanelOpen.set(false);
-} 
+}

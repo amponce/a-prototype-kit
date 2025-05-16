@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import { Dialog, DialogButton, DialogDescription, DialogRoot, DialogTitle } from '~/components/ui/Dialog';
 import { ThemeSwitch } from '~/components/ui/ThemeSwitch';
-import { ControlPanel } from '~/components/@settings/core/ControlPanel';
 import { SettingsButton } from '~/components/ui/SettingsButton';
 import { Button } from '~/components/ui/Button';
 import { db, deleteById, getAll, chatId, type ChatHistoryItem, useChatHistory } from '~/lib/persistence';
@@ -13,7 +12,7 @@ import { binDates } from './date-binning';
 import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
 import { useStore } from '@nanostores/react';
-import { controlPanelOpen, closeControlPanel } from '~/lib/stores/controlPanel';
+import { controlPanelOpen } from '~/lib/stores/controlPanel';
 
 const menuVariants = {
   closed: {
@@ -69,6 +68,7 @@ export const Menu = () => {
   const [list, setList] = useState<ChatHistoryItem[]>([]);
   const [open, setOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
+
   // Use the global store for control panel visibility
   const isSettingsOpen = useStore(controlPanelOpen);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -312,11 +312,6 @@ export const Menu = () => {
     // Use the global function to open the control panel
     controlPanelOpen.set(true);
     setOpen(false);
-  };
-
-  const handleSettingsClose = () => {
-    // Use the global function to close the control panel
-    closeControlPanel();
   };
 
   const setDialogContentWithLogging = useCallback((content: DialogContent) => {

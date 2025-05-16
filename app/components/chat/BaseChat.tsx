@@ -12,7 +12,6 @@ import { classNames } from '~/utils/classNames';
 import { Messages } from './Messages.client';
 import { SendButton } from './SendButton.client';
 import { getApiKeysFromCookies } from './APIKeyManager';
-import Cookies from 'js-cookie';
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { ControlPanel } from '~/components/@settings/core/ControlPanel';
 import { useStore } from '@nanostores/react';
@@ -180,42 +179,39 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     useEffect(() => {
       if (provider && typeof window !== 'undefined') {
         const storedApiKeys = getApiKeysFromCookies();
+
         // Check if there's a valid API key (not just the presence of the provider name)
         const hasApiKey = !!storedApiKeys[provider.name] && storedApiKeys[provider.name].length > 0;
-        
+
         // Check if this provider has an API key set
         const checkEnvApiKey = async () => {
           try {
             const response = await fetch(`/api/check-env-key?provider=${encodeURIComponent(provider.name)}`);
             const data = await response.json();
             const isEnvKeySet = (data as { isSet: boolean }).isSet;
-            
+
             // Update API key missing state - true if neither cookie nor env key is set
             setApiKeyMissing(!hasApiKey && !isEnvKeySet);
           } catch (error) {
             console.error('Failed to check environment API key:', error);
+
             // If we can't check env key, just use cookie check
             setApiKeyMissing(!hasApiKey);
           }
         };
-        
+
         checkEnvApiKey();
       }
     }, [provider]);
-    
+
     useEffect(() => {
       if (typeof window !== 'undefined') {
-        let parsedApiKeys: Record<string, string> | undefined = {};
         // We don't need to store the result since we're not using it
 
-        try {
-          const storedApiKeys = Cookies.get('apiKeys');
-          if (storedApiKeys) {
-            parsedApiKeys = JSON.parse(storedApiKeys);
-          }
-        } catch (error) {
-          console.error('Error parsing API keys:', error);
-        }  
+        /*
+         * We don't actually need to parse the API keys here since we're not using them
+         * The API keys are already checked in the previous useEffect
+         */
 
         fetch('/api/models')
           .then((response) => response.json())
@@ -378,9 +374,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 })}
               >
                 <div className="bg-bolt-elements-background-depth-2">
-                  {apiKeyMissing && provider && (
-                    <ApiKeyNotification providerName={provider.name} />
-                  )}
+                  {/* Show API key notification if an API key is missing for the current provider */}
+                  {apiKeyMissing && <ApiKeyNotification providerName={provider?.name || 'Anthropic'} />}
                   {actionAlert && (
                     <ChatAlert
                       alert={actionAlert}
@@ -395,7 +390,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 {progressAnnotations && <ProgressCompilation data={progressAnnotations} />}
                 {!model && !chatStarted && (
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
-                    <strong>Tip:</strong> We recommend using Anthropic's Claude 3.7 model for the best experience. 
+                    <strong>Tip:</strong> We recommend using Anthropic's Claude 3.5 model for the best experience.
                     Configure your model in Settings → Model Selection.
                   </div>
                 )}
@@ -527,7 +522,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         minHeight: TEXTAREA_MIN_HEIGHT,
                         maxHeight: TEXTAREA_MAX_HEIGHT,
                       }}
-                      placeholder={!model ? "How can a6 help you today? (Recommended model: Claude 3.7)" : "How can a6 help you today?"}
+                      placeholder={
+                        !model
+                          ? 'How can a6 help you today? (Recommended model: Claude 3.5)'
+                          : 'How can a6 help you today?'
+                      }
                       translate="no"
                     />
                     <ClientOnly>
@@ -590,9 +589,11 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         >
                           <div className={`i-ph:caret-${isModelSettingsCollapsed ? 'right' : 'down'} text-lg`} />
                           {isModelSettingsCollapsed ? (
-                            <span className="text-xs">{model || "Select a model (Claude 3.7 recommended)"}</span>
+                            <span className="text-xs">{model || 'Select a model (Claude 3.5 recommended)'}</span>
+                          ) : !model ? (
+                            <span className="text-xs text-amber-500">Model not set</span>
                           ) : (
-                            !model ? <span className="text-xs text-amber-500">Model not set</span> : <span />
+                            <span />
                           )}
                         </IconButton>
                       </div>
@@ -639,17 +640,17 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           </ClientOnly>
         </div>
       </div>
-      );
+    );
 
-  // Get control panel visibility state from global store
-  const isControlPanelOpen = useStore(controlPanelOpen);
+    // Get control panel visibility state from global store
+    const isControlPanelOpen = useStore(controlPanelOpen);
 
-  return (
-    <Tooltip.Provider delayDuration={200}>
-      {baseChat}
-      {/* Control Panel that can be opened from anywhere in the app */}
-      <ControlPanel open={isControlPanelOpen} onClose={closeControlPanel} />
-    </Tooltip.Provider>
-  );
-},
+    return (
+      <Tooltip.Provider delayDuration={200}>
+        {baseChat}
+        {/* Control Panel that can be opened from anywhere in the app */}
+        <ControlPanel open={isControlPanelOpen} onClose={closeControlPanel} />
+      </Tooltip.Provider>
+    );
+  },
 );
