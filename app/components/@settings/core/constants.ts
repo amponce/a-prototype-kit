@@ -2,21 +2,21 @@ import type { TabType } from './types';
 import type { TabVisibilityConfig } from './types';
 
 export const TAB_ICONS: Record<TabType, string> = {
-  profile: 'i-ph:user-circle-duotone',
-  settings: 'i-ph:gear-six-duotone',
-  notifications: 'i-ph:bell-duotone',
-  features: 'i-ph:star-duotone',
-  data: 'i-ph:database-duotone',
-  'cloud-providers': 'i-ph:cloud-duotone',
-  'local-providers': 'i-ph:desktop-duotone',
-  'service-status': 'i-ph:activity-duotone',
-  connection: 'i-ph:wifi-high-duotone',
-  debug: 'i-ph:bug-duotone',
-  'event-logs': 'i-ph:clipboard-text-duotone',
-  update: 'i-ph:cloud-arrow-down-duotone',
-  'task-manager': 'i-ph:chart-line-duotone',
-  'model-selection': 'i-ph:brain-duotone',
-  'tab-management': 'i-ph:tabs-duotone',
+  profile: 'i-ph:user-circle-fill',
+  settings: 'i-ph:gear-six-fill',
+  notifications: 'i-ph:bell-fill',
+  features: 'i-ph:star-fill',
+  data: 'i-ph:database-fill',
+  'cloud-providers': 'i-ph:cloud-fill',
+  'local-providers': 'i-ph:desktop-fill',
+  'service-status': 'i-ph:activity-fill',
+  connection: 'i-ph:wifi-high-fill',
+  debug: 'i-ph:bug-fill',
+  'event-logs': 'i-ph:list-bullets-fill',
+  update: 'i-ph:arrow-clockwise-fill',
+  'task-manager': 'i-ph:chart-line-fill',
+  'model-selection': 'i-ph:brain-fill',
+  'tab-management': 'i-ph:squares-four-fill',
 };
 
 export const TAB_LABELS: Record<TabType, string> = {
@@ -57,11 +57,11 @@ export const TAB_DESCRIPTIONS: Record<TabType, string> = {
 
 export const DEFAULT_TAB_CONFIG = [
   // User Window Tabs (Always visible by default)
-  { id: 'features', visible: true, window: 'user' as const, order: 0 },
-  { id: 'data', visible: true, window: 'user' as const, order: 1 },
-  { id: 'cloud-providers', visible: true, window: 'user' as const, order: 2 },
-  { id: 'local-providers', visible: true, window: 'user' as const, order: 3 },
-  { id: 'model-selection', visible: true, window: 'user' as const, order: 4 },
+  { id: 'model-selection', visible: true, window: 'user' as const, order: 0 },
+  { id: 'cloud-providers', visible: true, window: 'user' as const, order: 1 },
+  { id: 'local-providers', visible: true, window: 'user' as const, order: 2 },
+  { id: 'features', visible: true, window: 'user' as const, order: 3 },
+  { id: 'data', visible: true, window: 'user' as const, order: 4 },
   { id: 'connection', visible: true, window: 'user' as const, order: 5 },
   { id: 'notifications', visible: true, window: 'user' as const, order: 6 },
   { id: 'event-logs', visible: true, window: 'user' as const, order: 7 },
@@ -72,7 +72,7 @@ export const DEFAULT_TAB_CONFIG = [
   { id: 'task-manager', visible: false, window: 'user' as const, order: 10 },
   { id: 'service-status', visible: false, window: 'user' as const, order: 11 },
 
-  // User Window Tabs (Hidden, controlled by TaskManagerTab)
+  // User Window Tabs (Hidden, not available in this version)
   { id: 'debug', visible: false, window: 'user' as const, order: 12 },
   { id: 'update', visible: false, window: 'user' as const, order: 13 },
 
@@ -90,5 +90,5 @@ export const DEFAULT_TAB_CONFIG = [
   { id: 'task-manager', visible: true, window: 'developer' as const, order: 10 },
   { id: 'service-status', visible: true, window: 'developer' as const, order: 11 },
   { id: 'debug', visible: true, window: 'developer' as const, order: 12 },
-  { id: 'update', visible: true, window: 'developer' as const, order: 13 },
+  { id: 'update', visible: false, window: 'developer' as const, order: 13 },
 ];

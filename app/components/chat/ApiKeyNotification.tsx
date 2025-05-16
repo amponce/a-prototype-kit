@@ -28,13 +28,6 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
     localStorage.setItem(storageKey, 'true');
   };
 
-  // Simplified approach that won't break on Cloudflare
-  const handleOpenSettings = () => {
-    if (typeof window !== 'undefined') {
-      alert('To add API keys, please use the settings ⚙️ button in the bottom-left corner');
-    }
-  };
-
   if (isDismissed) {
     return null;
   }
@@ -58,13 +51,9 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
             To use {providerName}, please add your API key in settings. Without an API key, you won't be able to use the
             AI features.
           </p>
-          <button
-            onClick={handleOpenSettings}
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors bg-transparent"
-          >
-            <span>Add API Key</span>
-            <span className="i-ph:arrow-right w-3.5 h-3.5" />
-          </button>
+          <p className="text-sm font-medium text-blue-500 mb-2">
+            Click the settings gear icon ⚙️ in the bottom left corner to add your API key
+          </p>
         </div>
       </div>
     </div>
