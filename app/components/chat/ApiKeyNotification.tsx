@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from '@remix-run/react';
+import { controlPanelOpen } from '~/lib/stores/controlPanel';
 
 interface ApiKeyNotificationProps {
   providerName: string;
@@ -34,7 +34,7 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
   }
 
   return (
-    <div className="mb-4 p-4 rounded-lg border border-bolt-elements-borderColor bg-bolt-elements-background-depth-0">
+    <div className="mb-4 p-4 rounded-lg border border-bolt-elements-borderColor bg-transparent">
       <div className="flex items-start gap-3">
         <div className="i-ph:warning-circle-fill text-amber-500 flex-shrink-0 w-5 h-5 mt-0.5" />
         <div className="flex-1">
@@ -52,13 +52,13 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
             To use {providerName}, please add your API key in settings. Without an API key, you won't be able to use the
             AI features.
           </p>
-          <Link
-            to="/settings/ai-providers"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors"
+          <button
+            onClick={() => controlPanelOpen.set(true)}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors bg-transparent"
           >
             <span>Add API Key</span>
             <span className="i-ph:arrow-right w-3.5 h-3.5" />
-          </Link>
+          </button>
         </div>
       </div>
     </div>

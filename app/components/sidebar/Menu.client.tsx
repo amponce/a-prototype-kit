@@ -14,6 +14,7 @@ import { useSearchFilter } from '~/lib/hooks/useSearchFilter';
 import { classNames } from '~/utils/classNames';
 import { useStore } from '@nanostores/react';
 import { profileStore } from '~/lib/stores/profile';
+import { controlPanelOpen } from '~/lib/stores/controlPanel';
 
 const menuVariants = {
   closed: {
@@ -69,7 +70,6 @@ export const Menu = () => {
   const [list, setList] = useState<ChatHistoryItem[]>([]);
   const [open, setOpen] = useState(false);
   const [dialogContent, setDialogContent] = useState<DialogContent>(null);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const profile = useStore(profileStore);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -283,9 +283,7 @@ export const Menu = () => {
     const exitThreshold = 40;
 
     function onMouseMove(event: MouseEvent) {
-      if (isSettingsOpen) {
-        return;
-      }
+      // No longer needed with global control panel state
 
       if (event.pageX < enterThreshold) {
         setOpen(true);
@@ -301,7 +299,7 @@ export const Menu = () => {
     return () => {
       window.removeEventListener('mousemove', onMouseMove);
     };
-  }, [isSettingsOpen]);
+  }, []);
 
   const handleDuplicate = async (id: string) => {
     await duplicateCurrentChat(id);
@@ -309,13 +307,11 @@ export const Menu = () => {
   };
 
   const handleSettingsClick = () => {
-    setIsSettingsOpen(true);
+    // Use the global function to open the control panel
+    controlPanelOpen.set(true);
     setOpen(false);
   };
 
-  const handleSettingsClose = () => {
-    setIsSettingsOpen(false);
-  };
 
   const setDialogContentWithLogging = useCallback((content: DialogContent) => {
     console.log('Setting dialog content:', content);
@@ -334,7 +330,7 @@ export const Menu = () => {
           'flex selection-accent flex-col side-menu fixed top-0 h-full',
           'bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800/50',
           'shadow-sm text-sm',
-          isSettingsOpen ? 'z-40' : 'z-sidebar',
+          'z-sidebar',
         )}
       >
         <div className="h-12 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800/50 bg-gray-50/50 dark:bg-gray-900/50">
@@ -530,8 +526,6 @@ export const Menu = () => {
           </div>
         </div>
       </motion.div>
-
-      <ControlPanel open={isSettingsOpen} onClose={handleSettingsClose} />
     </>
   );
 };

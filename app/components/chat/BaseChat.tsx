@@ -14,6 +14,9 @@ import { SendButton } from './SendButton.client';
 import { getApiKeysFromCookies } from './APIKeyManager';
 import Cookies from 'js-cookie';
 import * as Tooltip from '@radix-ui/react-tooltip';
+import { ControlPanel } from '~/components/@settings/core/ControlPanel';
+import { useStore } from '@nanostores/react';
+import { controlPanelOpen, closeControlPanel } from '~/lib/stores/controlPanel';
 
 import styles from './BaseChat.module.scss';
 import { ExportChatButton } from '~/components/chat/chatExportAndImport/ExportChatButton';
@@ -635,6 +638,15 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       </div>
     );
 
-    return <Tooltip.Provider delayDuration={200}>{baseChat}</Tooltip.Provider>;
+    // Get control panel visibility state from global store
+    const isControlPanelOpen = useStore(controlPanelOpen);
+
+    return (
+      <Tooltip.Provider delayDuration={200}>
+        {baseChat}
+        {/* Control Panel that can be opened from anywhere in the app */}
+        <ControlPanel open={isControlPanelOpen} onClose={closeControlPanel} />
+      </Tooltip.Provider>
+    );
   },
 );

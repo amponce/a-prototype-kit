@@ -437,9 +437,9 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
             <motion.div
               className={classNames(
                 'w-[1200px] h-[90vh]',
-                'bg-[#FAFAFA] dark:bg-[#0A0A0A]',
+                'bg-bolt-elements-background dark:bg-bolt-elements-background',
                 'rounded-2xl shadow-2xl',
-                'border border-[#E5E5E5] dark:border-[#1A1A1A]',
+                'border border-bolt-elements-borderColor dark:border-bolt-elements-borderColor',
                 'flex flex-col overflow-hidden',
                 'relative',
               )}
