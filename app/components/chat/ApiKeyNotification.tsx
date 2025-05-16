@@ -6,8 +6,6 @@ interface ApiKeyNotificationProps {
 }
 
 export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ providerName }) => {
-  console.log('[Cloudflare Diagnostic] ApiKeyNotification rendering for provider:', providerName);
-  
   const [isDismissed, setIsDismissed] = useState(false);
 
   const storageKey = `dismissed_api_key_notification_${providerName}`;
@@ -15,15 +13,12 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
   // Check if notification was previously dismissed
   useEffect(() => {
     try {
-      console.log('[Cloudflare Diagnostic] ApiKeyNotification checking localStorage');
       const wasDismissed = localStorage.getItem(storageKey) === 'true';
-      console.log('[Cloudflare Diagnostic] ApiKeyNotification wasDismissed:', wasDismissed);
-
       if (wasDismissed) {
         setIsDismissed(true);
       }
     } catch (e) {
-      console.error('[Cloudflare Diagnostic] ApiKeyNotification localStorage error:', e);
+      console.error('Error checking localStorage:', e);
     }
   }, [storageKey]);
 

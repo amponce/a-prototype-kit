@@ -127,30 +127,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [apiKeyMissing, setApiKeyMissing] = useState(false);
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     
-    // Diagnostic logging
-    useEffect(() => {
-      console.log('[Cloudflare Diagnostic] BaseChatInner mounted', { 
-        showChat, 
-        chatStarted, 
-        isStreaming,
-        hasMessages: !!messages && messages.length > 0,
-        apiKeyMissing
-      });
-      
-      if (typeof window !== 'undefined') {
-        try {
-          console.log('[Cloudflare Diagnostic] Window object exists');
-          console.log('[Cloudflare Diagnostic] localStorage test:', typeof localStorage);
-          console.log('[Cloudflare Diagnostic] API keys from cookies:', getApiKeysFromCookies());
-        } catch (e) {
-          console.error('[Cloudflare Diagnostic] Browser API error:', e);
-        }
-      }
-      
-      return () => {
-        console.log('[Cloudflare Diagnostic] BaseChatInner unmounted');
-      };
-    }, []);
     
     useEffect(() => {
       if (data) {

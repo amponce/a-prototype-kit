@@ -37,21 +37,10 @@ const logger = createScopedLogger('Chat');
 
 export function Chat() {
   renderLogger.trace('Chat');
-  console.log('[Cloudflare Diagnostic] Chat component rendering');
-  
-  try {
-    console.log('[Cloudflare Diagnostic] Navigator info:', navigator.userAgent);
-    console.log('[Cloudflare Diagnostic] Window location:', window.location.href);
-  } catch (e) {
-    console.error('[Cloudflare Diagnostic] Error accessing browser APIs:', e);
-  }
 
   const { ready, initialMessages, storeMessageHistory, importChat, exportChat } = useChatHistory();
-  console.log('[Cloudflare Diagnostic] Chat history ready:', ready);
-  
   const title = useStore(description);
   useEffect(() => {
-    console.log('[Cloudflare Diagnostic] initialMessages effect triggered');
     workbenchStore.setReloadedMessages(initialMessages.map((m) => m.id));
   }, [initialMessages]);
 
