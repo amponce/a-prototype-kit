@@ -28,13 +28,11 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
     localStorage.setItem(storageKey, 'true');
   };
 
-  // Define a client-safe click handler
+  // Using a simple client-side navigation approach
   const handleOpenSettings = () => {
     if (typeof window !== 'undefined') {
-      // Using window.document to create a custom event is safe on both client and server
-      // On the client, the event will be picked up by the listener in BaseChat
-      const event = new CustomEvent('openControlPanel');
-      window.document.dispatchEvent(event);
+      // We'll use window.location directly which is safer for SSR
+      window.location.href = "#settings";
     }
   };
 

@@ -26,6 +26,7 @@ import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import type { ProviderInfo } from '~/types/model';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { toast } from 'react-toastify';
+import { ControlPanel } from '~/components/@settings/core/ControlPanel';
 
 // import StarterTemplates from './StarterTemplates';
 import type { ActionAlert, SupabaseAlert, DeployAlert } from '~/types/actions';
@@ -631,61 +632,43 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       </div>
     );
 
-    // We'll use a clientOnly wrapper around the control panel to prevent server-side Cloudflare issues
-    const [controlPanelIsVisible, setControlPanelIsVisible] = useState(false);
-    const [ControlPanelComponent, setControlPanelComponent] = useState<React.ComponentType<{open: boolean, onClose: () => void}> | null>(null);
-
-    // Dynamically load the control panel component and state on the client side only
+    // Local state for settings panel - simple approach
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    
+    // Listen for hash changes - if #settings is present, open settings
     useEffect(() => {
       if (typeof window !== 'undefined') {
-        // Server-safe approach - load control panel component asynchronously
-        const loadControlPanel = async () => {
-          try {
-            // Dynamic import for the component
-            const ControlPanelModule = await import('~/components/@settings/core/ControlPanel');
-            setControlPanelComponent(() => ControlPanelModule.ControlPanel);
-            
-            // Set up custom event listener for opening the control panel
-            const handleOpenEvent = () => {
-              setControlPanelIsVisible(true);
-            };
-            
-            // Add event listener
-            document.addEventListener('openControlPanel', handleOpenEvent);
-            
-            // Clean up function
-            return () => {
-              document.removeEventListener('openControlPanel', handleOpenEvent);
-            };
-          } catch (error) {
-            console.error('Failed to load control panel:', error);
+        const handleHashChange = () => {
+          if (window.location.hash === '#settings') {
+            setIsSettingsOpen(true);
+            // Clear the hash after opening
+            window.history.replaceState(null, '', window.location.pathname);
           }
         };
         
-        loadControlPanel();
+        // Check on initial load
+        handleHashChange();
+        
+        // Listen for hash changes
+        window.addEventListener('hashchange', handleHashChange);
+        
+        return () => {
+          window.removeEventListener('hashchange', handleHashChange);
+        };
       }
     }, []);
 
     return (
       <Tooltip.Provider delayDuration={200}>
         {baseChat}
-        {/* Conditionally render the control panel only on the client side */}
-        {ControlPanelComponent && controlPanelIsVisible && (
-          <ClientOnly>
-            {() => {
-              const Panel = ControlPanelComponent;
-              return (
-                <Panel 
-                  open={controlPanelIsVisible} 
-                  onClose={() => {
-                    // Simple state-based approach
-                    setControlPanelIsVisible(false);
-                  }} 
-                />
-              );
-            }}
-          </ClientOnly>
-        )}
+        <ClientOnly>
+          {() => (
+            <ControlPanel 
+              open={isSettingsOpen} 
+              onClose={() => setIsSettingsOpen(false)}
+            />
+          )}
+        </ClientOnly>
       </Tooltip.Provider>
     );
   },
