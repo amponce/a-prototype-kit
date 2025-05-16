@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from '@remix-run/react';
 
 interface ApiKeyNotificationProps {
   providerName: string;
@@ -29,6 +28,16 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
     localStorage.setItem(storageKey, 'true');
   };
 
+  // Define a client-safe click handler
+  const handleOpenSettings = () => {
+    if (typeof window !== 'undefined') {
+      // Using window.document to create a custom event is safe on both client and server
+      // On the client, the event will be picked up by the listener in BaseChat
+      const event = new CustomEvent('openControlPanel');
+      window.document.dispatchEvent(event);
+    }
+  };
+
   if (isDismissed) {
     return null;
   }
@@ -52,13 +61,13 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
             To use {providerName}, please add your API key in settings. Without an API key, you won't be able to use the
             AI features.
           </p>
-          <Link
-            to="/settings/ai-providers"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors"
+          <button
+            onClick={handleOpenSettings}
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-500 hover:text-blue-600 transition-colors bg-transparent"
           >
             <span>Add API Key</span>
             <span className="i-ph:arrow-right w-3.5 h-3.5" />
-          </Link>
+          </button>
         </div>
       </div>
     </div>

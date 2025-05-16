@@ -420,7 +420,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
         <div className="fixed inset-0 flex items-center justify-center z-[100]">
           <RadixDialog.Overlay asChild>
             <motion.div
-              className="absolute inset-0 bg-black/70 dark:bg-black/80 backdrop-blur-sm"
+              className="absolute inset-0 bg-gray-900/70 dark:bg-gray-950/80 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -436,10 +436,10 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
           >
             <motion.div
               className={classNames(
-                'w-[1200px] h-[90vh]',
-                'bg-[#FAFAFA] dark:bg-[#0A0A0A]',
+                'w-[1200px] h-[90vh] max-w-[90vw]',
+                'bg-bolt-elements-background dark:bg-bolt-elements-background',
                 'rounded-2xl shadow-2xl',
-                'border border-[#E5E5E5] dark:border-[#1A1A1A]',
+                'border border-bolt-elements-borderColor dark:border-bolt-elements-borderColor',
                 'flex flex-col overflow-hidden',
                 'relative',
               )}
@@ -522,7 +522,7 @@ export const ControlPanel = ({ open, onClose }: ControlPanelProps) => {
                       getTabComponent(activeTab)
                     ) : (
                       <motion.div
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 relative"
+                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative max-w-full"
                         variants={gridLayoutVariants}
                         initial="hidden"
                         animate="visible"

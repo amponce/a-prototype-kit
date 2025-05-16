@@ -123,7 +123,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [isListening, setIsListening] = useState(false);
     const [recognition, setRecognition] = useState<any | null>(null);
     const [transcript, setTranscript] = useState('');
-    const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
+    // Model loading state kept for future reference but not currently used
     const [apiKeyMissing, setApiKeyMissing] = useState(false);
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     
@@ -207,19 +207,18 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
 
     useEffect(() => {
       if (typeof window !== 'undefined') {
-        let parsedApiKeys: Record<string, string> | undefined = {};
-
+        // Read API keys from cookies - used later for checking if keys are set
         try {
+          // Cookies are accessed elsewhere via getApiKeysFromCookies()
           const storedApiKeys = Cookies.get('apiKeys');
-
-          if (storedApiKeys) {
-            parsedApiKeys = JSON.parse(storedApiKeys);
+          if (!storedApiKeys) {
+            console.log('No API keys found in cookies');
           }
         } catch (error) {
-          console.error('Error parsing API keys:', error);
+          console.error('Error reading API keys:', error);
         }
 
-        setIsModelLoading('all');
+        // Fetch available models
         fetch('/api/models')
           .then((response) => response.json())
           .then((data) => {
@@ -228,9 +227,6 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
           })
           .catch((error) => {
             console.error('Error fetching model list:', error);
-          })
-          .finally(() => {
-            setIsModelLoading(undefined);
           });
       }
     }, []);
@@ -635,6 +631,62 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       </div>
     );
 
-    return <Tooltip.Provider delayDuration={200}>{baseChat}</Tooltip.Provider>;
+    // We'll use a clientOnly wrapper around the control panel to prevent server-side Cloudflare issues
+    const [controlPanelIsVisible, setControlPanelIsVisible] = useState(false);
+    const [ControlPanelComponent, setControlPanelComponent] = useState<React.ComponentType<{open: boolean, onClose: () => void}> | null>(null);
+
+    // Dynamically load the control panel component and state on the client side only
+    useEffect(() => {
+      if (typeof window !== 'undefined') {
+        // Server-safe approach - load control panel component asynchronously
+        const loadControlPanel = async () => {
+          try {
+            // Dynamic import for the component
+            const ControlPanelModule = await import('~/components/@settings/core/ControlPanel');
+            setControlPanelComponent(() => ControlPanelModule.ControlPanel);
+            
+            // Set up custom event listener for opening the control panel
+            const handleOpenEvent = () => {
+              setControlPanelIsVisible(true);
+            };
+            
+            // Add event listener
+            document.addEventListener('openControlPanel', handleOpenEvent);
+            
+            // Clean up function
+            return () => {
+              document.removeEventListener('openControlPanel', handleOpenEvent);
+            };
+          } catch (error) {
+            console.error('Failed to load control panel:', error);
+          }
+        };
+        
+        loadControlPanel();
+      }
+    }, []);
+
+    return (
+      <Tooltip.Provider delayDuration={200}>
+        {baseChat}
+        {/* Conditionally render the control panel only on the client side */}
+        {ControlPanelComponent && controlPanelIsVisible && (
+          <ClientOnly>
+            {() => {
+              const Panel = ControlPanelComponent;
+              return (
+                <Panel 
+                  open={controlPanelIsVisible} 
+                  onClose={() => {
+                    // Simple state-based approach
+                    setControlPanelIsVisible(false);
+                  }} 
+                />
+              );
+            }}
+          </ClientOnly>
+        )}
+      </Tooltip.Provider>
+    );
   },
 );
