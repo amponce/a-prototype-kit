@@ -899,6 +899,23 @@ export default function GitHubConnection() {
 
                   {/* Repositories Section */}
                   <div className="space-y-4">
+                    <h3 className="text-lg font-medium text-bolt-elements-textPrimary">
+                      Connect to GitHub
+                    </h3>
+                    <div className="p-3 rounded-lg bg-bolt-elements-background-depth-0 border border-bolt-elements-borderColor">
+                      <div className="flex items-start gap-2">
+                        <div className="i-ph:info-light text-bolt-elements-icon-info flex-shrink-0 w-5 h-5 mt-0.5" />
+                        <div className="text-sm text-bolt-elements-textSecondary">
+                          <p><strong>Template Access:</strong> Starter templates can be accessed without a personal GitHub token.</p>
+                          <p className="mt-1">Your personal token is only required for:</p>
+                          <ul className="list-disc list-inside mt-1 ml-1 space-y-0.5">
+                            <li>Accessing private repositories</li>
+                            <li>Using Git functionalities (push, pull, clone)</li>
+                            <li>Higher rate limits for GitHub API</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
                     <h4 className="text-sm font-medium text-bolt-elements-textPrimary">Recent Repositories</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {connection.stats.repos.map((repo) => (

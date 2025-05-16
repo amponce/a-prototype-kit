@@ -136,17 +136,40 @@ export const selectStarterTemplate = async (options: {
 const getGitHubRepoContent = async (
   repoName: string,
   path: string = '',
+  operation: 'fetchTemplate' | 'userRepository' = 'fetchTemplate'
 ): Promise<{ name: string; path: string; content: string }[]> => {
   const baseUrl = 'https://api.github.com';
 
   try {
-    const token = Cookies.get('githubToken') || import.meta.env.VITE_GITHUB_ACCESS_TOKEN;
+    // For template fetching, use the template token first, then fall back to user token
+    // For user repositories, only use the user's token
+    const templateToken = import.meta.env.VITE_GITHUB_TEMPLATE_TOKEN;
+    const userToken = Cookies.get('githubToken');
+    
+    // Select appropriate token based on operation
+    const token = operation === 'fetchTemplate' 
+      ? (templateToken || userToken) 
+      : userToken;
+
+    // Log which token is being used (for debugging and notifications)
+    const isUsingSystemToken = operation === 'fetchTemplate' && templateToken && (!userToken || token === templateToken);
+    
+    if (isUsingSystemToken && typeof window !== 'undefined') {
+      // Show toast notification only once per session
+      if (!window.sessionStorage.getItem('template_token_notification')) {
+        // Using dynamic import to avoid issues with SSR
+        import('react-toastify').then(({ toast }) => {
+          toast.info('Using system GitHub token for template access', { toastId: 'template-token' });
+          window.sessionStorage.setItem('template_token_notification', 'true');
+        }).catch(console.error);
+      }
+    }
 
     const headers: HeadersInit = {
       Accept: 'application/vnd.github.v3+json',
     };
 
-    // Add your GitHub token if needed
+    // Add GitHub token if available
     if (token) {
       headers.Authorization = 'Bearer ' + token;
     }
@@ -220,7 +243,8 @@ export async function getTemplates(templateName: string, title?: string) {
   }
 
   const githubRepo = template.githubRepo;
-  const files = await getGitHubRepoContent(githubRepo);
+  // Explicitly use fetchTemplate operation to prioritize the template token
+  const files = await getGitHubRepoContent(githubRepo, '', 'fetchTemplate');
 
   let filteredFiles = files;
 

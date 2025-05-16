@@ -36,6 +36,7 @@ import type { ProgressAnnotation } from '~/types/context';
 import type { ActionRunner } from '~/lib/runtime/action-runner';
 import { SupabaseChatAlert } from '~/components/chat/SupabaseAlert';
 import { SupabaseConnection } from './SupabaseConnection';
+import { ApiKeyNotification } from './ApiKeyNotification';
 
 const TEXTAREA_MIN_HEIGHT = 76;
 
@@ -88,6 +89,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       isStreaming = false,
       onStreamingChange,
       model,
+      provider,
       input = '',
       enhancingPrompt,
       handleInputChange,
@@ -118,9 +120,10 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [modelList, setModelList] = useState<ModelInfo[]>([]);
     const [isModelSettingsCollapsed, setIsModelSettingsCollapsed] = useState(false);
     const [isListening, setIsListening] = useState(false);
-    const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+    const [recognition, setRecognition] = useState<any | null>(null);
     const [transcript, setTranscript] = useState('');
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
+    const [apiKeyMissing, setApiKeyMissing] = useState(false);
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
     useEffect(() => {
       if (data) {
@@ -170,16 +173,45 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       }
     }, []);
 
+    // Check if API key is missing for the current provider
+    useEffect(() => {
+      if (provider && typeof window !== 'undefined') {
+        const storedApiKeys = getApiKeysFromCookies();
+        // Check if there's a valid API key (not just the presence of the provider name)
+        const hasApiKey = !!storedApiKeys[provider.name] && storedApiKeys[provider.name].length > 0;
+        
+        // Check if this provider has an API key set
+        const checkEnvApiKey = async () => {
+          try {
+            const response = await fetch(`/api/check-env-key?provider=${encodeURIComponent(provider.name)}`);
+            const data = await response.json();
+            const isEnvKeySet = (data as { isSet: boolean }).isSet;
+            
+            // Update API key missing state - true if neither cookie nor env key is set
+            setApiKeyMissing(!hasApiKey && !isEnvKeySet);
+          } catch (error) {
+            console.error('Failed to check environment API key:', error);
+            // If we can't check env key, just use cookie check
+            setApiKeyMissing(!hasApiKey);
+          }
+        };
+        
+        checkEnvApiKey();
+      }
+    }, [provider]);
+    
     useEffect(() => {
       if (typeof window !== 'undefined') {
         let parsedApiKeys: Record<string, string> | undefined = {};
 
         try {
-          parsedApiKeys = getApiKeysFromCookies();
+          const storedApiKeys = Cookies.get('apiKeys');
+          if (storedApiKeys) {
+            parsedApiKeys = JSON.parse(storedApiKeys);
+          }
         } catch (error) {
-          console.error('Error loading API keys from cookies:', error);
-          Cookies.remove('apiKeys');
-        }
+          console.error('Error parsing API keys:', error);
+        }  
 
         setIsModelLoading('all');
         fetch('/api/models')
@@ -346,6 +378,9 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                 })}
               >
                 <div className="bg-bolt-elements-background-depth-2">
+                  {apiKeyMissing && provider && (
+                    <ApiKeyNotification providerName={provider.name} />
+                  )}
                   {actionAlert && (
                     <ChatAlert
                       alert={actionAlert}
