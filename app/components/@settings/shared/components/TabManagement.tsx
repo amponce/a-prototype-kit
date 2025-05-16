@@ -26,6 +26,7 @@ const TAB_ICONS: Record<TabType, string> = {
   update: 'i-ph:arrow-clockwise-fill',
   'task-manager': 'i-ph:chart-line-fill',
   'tab-management': 'i-ph:squares-four-fill',
+  'model-selection': 'i-ph:brain-fill',
 };
 
 // Define which tabs are default in user mode
