@@ -171,7 +171,7 @@ export async function setMessages(
             });
 
             retryRequest.onsuccess = () => resolve();
-            retryRequest.onerror = () => reject(request.error);
+            retryRequest.onerror = () => reject(retryRequest.error);
           } else {
             reject(request.error);
           }
