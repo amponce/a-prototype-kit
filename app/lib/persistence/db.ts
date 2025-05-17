@@ -194,13 +194,40 @@ export async function getMessagesByUrlId(db: IDBDatabase, id: string | undefined
   }
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction('chats', 'readonly');
-    const store = transaction.objectStore('chats');
-    const index = store.index('urlId');
-    const request = index.get(id);
+    try {
+      const transaction = db.transaction('chats', 'readonly');
+      const store = transaction.objectStore('chats');
+      
+      // Safely check if the urlId index exists
+      let request;
+      try {
+        const index = store.index('urlId');
+        request = index.get(id);
+      } catch (indexError) {
+        // If the index doesn't exist, fall back to scanning all records
+        console.warn('urlId index not found, falling back to full scan for ID:', id);
+        const allRecords = store.getAll();
+        
+        allRecords.onsuccess = () => {
+          const results = allRecords.result as ChatHistoryItem[];
+          const match = results.find(item => item.urlId === id);
+          if (match) {
+            resolve(match);
+          } else {
+            reject(new Error(`No chat found with URL ID: ${id}`));
+          }
+        };
+        
+        allRecords.onerror = () => reject(allRecords.error);
+        return;
+      }
 
-    request.onsuccess = () => resolve(request.result as ChatHistoryItem);
-    request.onerror = () => reject(request.error);
+      // If we got here, the index exists and we're using it
+      request.onsuccess = () => resolve(request.result as ChatHistoryItem);
+      request.onerror = () => reject(request.error);
+    } catch (error) {
+      reject(error);
+    }
   });
 }
 

@@ -216,13 +216,15 @@ export class WorkbenchStore {
     const currentDocument = this.currentDocument.get();
 
     if (currentDocument) {
-      const previousUnsavedFiles = this.unsavedFiles.get();
+      const previousUnsavedFiles = this.unsavedFiles.get() || new Set();
 
-      if (unsavedChanges && previousUnsavedFiles.has(currentDocument.filePath)) {
+      // Only check .has() if we actually have a Set
+      if (unsavedChanges && previousUnsavedFiles instanceof Set && previousUnsavedFiles.has(currentDocument.filePath)) {
         return;
       }
 
-      const newUnsavedFiles = new Set(previousUnsavedFiles);
+      // Ensure we're working with a Set
+      const newUnsavedFiles = new Set(previousUnsavedFiles instanceof Set ? previousUnsavedFiles : []);
 
       if (unsavedChanges) {
         newUnsavedFiles.add(currentDocument.filePath);
