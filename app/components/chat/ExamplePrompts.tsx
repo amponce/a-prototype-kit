@@ -38,7 +38,7 @@ export const EXAMPLE_PROMPTS = [
    - Verify Attendance
    - View Payment History
 
-Use VA web components and keep the implementation minimal.`,
+Use VA web components and design system for a consistent look and feel.`,
   },
   {
     text: 'VA claims tool and with document uploader',
@@ -53,8 +53,6 @@ Use VA web components and keep the implementation minimal.`,
    - Drag and drop or file selection
    - File type validation (PDF, JPG, PNG only)
    - Simple progress indicator
-
-Include a "Need Help?" section with VA contact information for claim questions.
 
 Use VA web components and design system for a consistent look and feel.`,
   },
@@ -72,7 +70,7 @@ Use VA web components and design system for a consistent look and feel.`,
    - Refill status and button to request refills
    - Basic information about each medication
 
-Add a "Print Records" button and include the va-need-help component.
+Add a "Print Records" button.
 
 Keep the implementation minimal using VA web components and utility classes.`,
   },

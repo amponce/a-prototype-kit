@@ -166,9 +166,65 @@ export class FilesStore {
     // Clean up any files that were previously deleted
     this.#cleanupDeletedFiles();
 
+    // Get the current template loading state to determine buffer timing
+    const getTemplateLoading = async () => {
+      try {
+        const { workbenchStore } = await import('~/lib/stores/workbench');
+        // Pass a reference to allow dynamically adjusting the buffer time
+        this.#setupWatchPathsWithDynamicBuffer(webcontainer);
+      } catch (error) {
+        // If import fails, fall back to standard buffer timing
+        webcontainer.internal.watchPaths(
+          { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
+          bufferWatchEvents(100, this.#processEventBuffer.bind(this)),
+        );
+      }
+    };
+
+    getTemplateLoading();
+  }
+
+  /**
+   * Sets up file watching with a dynamic buffer time that adjusts based on template loading state
+   */
+  #setupWatchPathsWithDynamicBuffer(webcontainer: WebContainer) {
+    // Default buffer time is 100ms for normal operations
+    let bufferTime = 100;
+    
+    // Create a buffering function that can dynamically adjust its timing
+    const dynamicBufferFn = (() => {
+      // Cache for the workbenchStore module
+      let cachedWorkbenchStore: typeof import('~/lib/stores/workbench') | null = null;
+      
+      // Pre-load the workbenchStore module to avoid repeated imports
+      import('~/lib/stores/workbench')
+        .then((module) => {
+          cachedWorkbenchStore = module;
+        })
+        .catch(() => {
+          // Module failed to load, we'll use default buffer times
+        });
+      
+      // Preserve reference to 'this' for the closure
+      const self = this;
+      
+      return function(events: PathWatcherEvent[]) {
+        // Check template loading state using cached module if available
+        if (cachedWorkbenchStore) {
+          bufferTime = cachedWorkbenchStore.workbenchStore.isTemplateLoading ? 300 : 100;
+        }
+        
+        // Use the buffer time determined above
+        const bufferedFn = bufferWatchEvents(bufferTime, self.#processEventBuffer.bind(self));
+        // Call the buffered function with the events array as the only argument
+        return bufferedFn(events);
+      };
+    })();
+    
+    // Set up file watching with our dynamic buffer function
     webcontainer.internal.watchPaths(
       { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
-      bufferWatchEvents(100, this.#processEventBuffer.bind(this)),
+      dynamicBufferFn,
     );
   }
 

@@ -41,6 +41,11 @@ export class WorkbenchStore {
   #editorStore = new EditorStore(this.#filesStore);
   #terminalStore = new TerminalStore(webcontainer);
 
+  // Flag to track if a template is currently being loaded
+  #isTemplateLoading = false;
+  // Timeout handle for debounced file selection
+  #pendingFileSelection: NodeJS.Timeout | null = null;
+
   #reloadedMessages = new Set<string>();
 
   artifacts: Artifacts = import.meta.hot?.data.artifacts ?? map({});
@@ -135,6 +140,10 @@ export class WorkbenchStore {
   clearDeployAlert() {
     this.deployAlert.set(undefined);
   }
+  
+  get isTemplateLoading() {
+    return this.#isTemplateLoading;
+  }
 
   toggleTerminal(value?: boolean) {
     this.#terminalStore.toggleTerminal(value);
@@ -151,17 +160,40 @@ export class WorkbenchStore {
     this.#terminalStore.onTerminalResize(cols, rows);
   }
 
+  /**
+   * Sets the template loading state to prevent file selection flickering
+   * @param isLoading Whether a template is currently being loaded
+   */
+  setTemplateLoadingState(isLoading: boolean) {
+    this.#isTemplateLoading = isLoading;
+  }
+
   setDocuments(files: FileMap) {
     this.#editorStore.setDocuments(files);
 
     if (this.#filesStore.filesCount > 0 && this.currentDocument.get() === undefined) {
-      // we find the first file and select it
+      // Clear any pending file selection
+      if (this.#pendingFileSelection) {
+        clearTimeout(this.#pendingFileSelection);
+        this.#pendingFileSelection = null;
+      }
+
+      // Define constants for debounce timing
+    const TEMPLATE_LOADING_DELAY = 800; // ms
+    const STANDARD_DELAY = 50; // ms
+    
+    // Use a debounced approach for file selection
+    // This prevents rapid file switching during template loading
+    this.#pendingFileSelection = setTimeout(() => {
+      // Find the first file and select it
       for (const [filePath, dirent] of Object.entries(files)) {
         if (dirent?.type === 'file') {
           this.setSelectedFile(filePath);
           break;
         }
       }
+      this.#pendingFileSelection = null;
+    }, this.#isTemplateLoading ? TEMPLATE_LOADING_DELAY : STANDARD_DELAY); // Longer delay during template loading
     }
   }
 
@@ -184,13 +216,15 @@ export class WorkbenchStore {
     const currentDocument = this.currentDocument.get();
 
     if (currentDocument) {
-      const previousUnsavedFiles = this.unsavedFiles.get();
+      const previousUnsavedFiles = this.unsavedFiles.get() || new Set();
 
-      if (unsavedChanges && previousUnsavedFiles.has(currentDocument.filePath)) {
+      // Only check .has() if we actually have a Set
+      if (unsavedChanges && previousUnsavedFiles instanceof Set && previousUnsavedFiles.has(currentDocument.filePath)) {
         return;
       }
 
-      const newUnsavedFiles = new Set(previousUnsavedFiles);
+      // Ensure we're working with a Set
+      const newUnsavedFiles = new Set(previousUnsavedFiles instanceof Set ? previousUnsavedFiles : []);
 
       if (unsavedChanges) {
         newUnsavedFiles.add(currentDocument.filePath);

@@ -4,6 +4,7 @@ import { IconButton } from '~/components/ui/IconButton';
 import { workbenchStore } from '~/lib/stores/workbench';
 import { PortDropdown } from './PortDropdown';
 import { ScreenshotSelector } from './ScreenshotSelector';
+import { motion } from 'framer-motion';
 
 type ResizeSide = 'left' | 'right' | null;
 
@@ -15,6 +16,242 @@ interface WindowSize {
   hasFrame?: boolean;
   frameType?: 'mobile' | 'tablet' | 'laptop' | 'desktop';
 }
+
+// Funny loading quips that rotate during compilation
+const LOADING_QUIPS = [
+  "Teaching electrons new tricks...",
+  "Convincing bits to behave...",
+  "Refactoring quantum flux...",
+  "Negotiating with the compiler...",
+  "Generating witty loading messages...",
+  "Herding unruly pixels...",
+  "Converting coffee to code...",
+  "Waiting for stack overflow answers...",
+  "Searching for missing semicolons...",
+  "Untangling spaghetti code...",
+  "Applying duct tape to bugs...",
+  "Making 1s and 0s play nice...",
+  "Summoning the spirit of Ada Lovelace...",
+  "Reticulating splines...",
+  "Warming up the flux capacitor...",
+  "Igniting the rocket engines..."
+];
+
+// Component for the enhanced loading overlay with rotating quips and octocat-inspired animation
+const LoadingOverlay = ({ message = "Compiling your code..." }: { message?: string }) => {
+  const [quipIndex, setQuipIndex] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // State to control eye movement - true when looking down at new quips
+  const [isLookingAtQuip, setIsLookingAtQuip] = useState(false);
+  
+  // Detect dark mode
+  useEffect(() => {
+    // Check if dark mode is active
+    const checkDarkMode = () => {
+      const isDark = 
+        document.documentElement.classList.contains('dark') ||
+        document.documentElement.getAttribute('data-theme') === 'dark' ||
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkMode(isDark);
+    };
+    
+    // Initial check
+    checkDarkMode();
+    
+    // Add listener for changes
+    const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    darkModeMediaQuery.addEventListener('change', checkDarkMode);
+    
+    // Add mutation observer for class changes on html element
+    const observer = new MutationObserver(checkDarkMode);
+    observer.observe(document.documentElement, { 
+      attributes: true,
+      attributeFilter: ['class', 'data-theme']
+    });
+    
+    return () => {
+      darkModeMediaQuery.removeEventListener('change', checkDarkMode);
+      observer.disconnect();
+    };
+  }, []);
+  
+  // Rotate through quips every few seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // First look down at where the quip will appear
+      setIsLookingAtQuip(true);
+      
+      // Short delay before changing the quip (eyes look first)
+      setTimeout(() => {
+        setQuipIndex((prevIndex) => (prevIndex + 1) % LOADING_QUIPS.length);
+        
+        // Keep looking at quip for a moment, then go back to looking around
+        setTimeout(() => {
+          setIsLookingAtQuip(false);
+        }, 1000);
+      }, 300);
+      
+    }, 4000); // Increased interval to give more time for the eye animations
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="absolute inset-0 flex flex-col justify-center items-center bg-bolt-elements-background-depth-1 bg-opacity-80 z-10">
+      {/* Cute octocat-inspired animated logo */}
+      <div className="mb-6 relative" style={{ width: '80px', height: '80px' }}>
+        {/* Cat body - rounder and bouncier */}
+        <motion.div
+          className={`absolute rounded-full ${isDarkMode ? 'bg-gray-300' : 'bg-gray-800'}`}
+          style={{ width: '62px', height: '52px', top: '15px', left: '9px', borderRadius: '60%' }}
+          animate={{
+            scale: [1, 1.06, 1.03, 1],
+            y: [0, -1, 1, 0]
+          }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        
+        {/* Cat head - cuter with softer shape */}
+        <motion.div
+          className={`absolute rounded-full ${isDarkMode ? 'bg-gray-300' : 'bg-gray-800'}`}
+          style={{ width: '44px', height: '36px', top: '3px', left: '18px', borderRadius: '50% 50% 45% 45%' }}
+          animate={{
+            rotate: [0, 3, 0, -3, 0],
+            y: [0, -2, 0, -1, 0]
+          }}
+          transition={{
+            duration: 3.5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        >
+          {/* Cuter animated Eyes with larger sockets and expressive pupils */}
+          {/* Left eye socket */}
+          <div className="absolute rounded-full bg-white" style={{ width: '14px', height: '14px', top: '8px', left: '7px', overflow: 'hidden', border: isDarkMode ? '1px solid rgba(0,0,0,0.2)' : '1px solid rgba(255,255,255,0.3)' }}>
+            {/* Left eye pupil - larger and more kawaii */}
+            <motion.div 
+              className={`absolute rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-black'}`}
+              style={{ width: '7px', height: '7px', top: '3px', left: '3px' }}
+              animate={isLookingAtQuip ? 
+                // Cute downward gaze when looking at quips
+                {
+                  y: 4,
+                  x: -0.5,
+                  scale: 1.1,
+                  borderRadius: '50%'
+                } : 
+                // Normal cute eye movements
+                {
+                  x: [0, 1, -1, 0, 0, 0, 2, -1, 0],
+                  y: [0, 0, 0, 1, 3, 0, 1, 0, 0],
+                  scale: [1, 1.05, 1, 1.1, 1]
+                }
+              }
+              transition={isLookingAtQuip ? 
+                { duration: 0.3, ease: "easeOut" } : 
+                {
+                  duration: 5,
+                  times: [0, 0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.9, 1],
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }
+            />
+          </div>
+          
+          {/* Right eye socket */}
+          <div className="absolute rounded-full bg-white" style={{ width: '14px', height: '14px', top: '8px', left: '23px', overflow: 'hidden', border: isDarkMode ? '1px solid rgba(0,0,0,0.2)' : '1px solid rgba(255,255,255,0.3)' }}>
+            {/* Right eye pupil - larger and more kawaii */}
+            <motion.div 
+              className={`absolute rounded-full ${isDarkMode ? 'bg-gray-800' : 'bg-black'}`}
+              style={{ width: '7px', height: '7px', top: '3px', left: '3px' }}
+              animate={isLookingAtQuip ? 
+                // Cute downward gaze when looking at quips
+                {
+                  y: 4,
+                  x: 0.5,  // Slightly the other way from left eye for cross-eyed cute look
+                  scale: 1.1,
+                  borderRadius: '50%'
+                } : 
+                // Normal cute eye movements - slightly different from left eye for realism
+                {
+                  x: [0, 2, -1, 0, 0, 0, 1, -2, 0],
+                  y: [0, 0, 0, 1, 3, 0, 1, 0, 0],
+                  scale: [1, 1, 1.05, 1, 1.1, 1]
+                }
+              }
+              transition={isLookingAtQuip ? 
+                { duration: 0.3, ease: "easeOut" } : 
+                {
+                  duration: 5.2, // Slightly different timing for more natural feel
+                  times: [0, 0.1, 0.2, 0.3, 0.4, 0.6, 0.7, 0.9, 1],
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }
+              }
+            />
+          </div>
+        </motion.div>
+        
+        {/* Cuter wiggling tentacles */}
+        {[45, 90, 135, 225, 270, 315].map((angle, i) => {
+          // Slightly different heights and widths for more organic feel
+          const height = 18 + Math.floor(i % 3) * 4;
+          const width = 5 + (i % 2);
+          
+          return (
+            <motion.div 
+              key={i}
+              className={`absolute ${isDarkMode ? 'bg-gray-300' : 'bg-gray-800'}`}
+              style={{ 
+                width: `${width}px`, 
+                height: `${height}px`, 
+                left: '37px', 
+                top: '40px',
+                originX: '50%',
+                originY: '0%',
+                rotate: `${angle}deg`,
+                transformOrigin: 'center top',
+                borderRadius: '4px 4px 12px 12px',
+                opacity: 0.9 + (i % 2) * 0.1 // Subtle varying opacity
+              }}
+              animate={{
+                scaleY: [1, 0.85, 1.05, 1],
+                scaleX: [1, 1.1, 0.95, 1],
+                rotate: [`${angle}deg`, `${angle + (i % 2 ? 3 : -3)}deg`, `${angle}deg`]
+              }}
+              transition={{
+                duration: 2 + (i % 3) * 0.5, // Varying durations
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: i * 0.15,
+              }}
+            />
+          );
+        })}
+      </div>
+      
+      <p className="text-lg mb-1 font-medium">{message}</p>
+      
+      {/* Animated quip container */}
+      <motion.div
+        key={quipIndex}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5 }}
+        className="h-6 text-center"
+      >
+        <p className="text-sm text-bolt-elements-textSecondary">{LOADING_QUIPS[quipIndex]}</p>
+      </motion.div>
+    </div>
+  );
+};
 
 const WINDOW_SIZES: WindowSize[] = [
   { name: 'iPhone SE', width: 375, height: 667, icon: 'i-ph:device-mobile', hasFrame: true, frameType: 'mobile' },
@@ -87,17 +324,46 @@ export const Preview = memo(() => {
   const [showDeviceFrame, setShowDeviceFrame] = useState(true);
   const [showDeviceFrameInPreview, setShowDeviceFrameInPreview] = useState(false);
 
+  // Track loading state for preview
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  
+  // Track whether we're waiting for a preview server to start
+  const [isInitializing, setIsInitializing] = useState(false);
+  
+  // Effect to check if previews array has changed (server might be starting)
+  useEffect(() => {
+    // If there are no previews and previews length changed to 0, server might be starting
+    if (previews.length === 0) {
+      // Only set initializing if we're not already showing a loading state
+      if (!isLoadingPreview && !isInitializing) {
+        setIsInitializing(true);
+      }
+    } else {
+      // If previews exist, we're no longer in initializing state
+      setIsInitializing(false);
+    }
+  }, [previews.length, isLoadingPreview, isInitializing]);
+
+  // Effect to handle active preview changes
   useEffect(() => {
     if (!activePreview) {
       setUrl('');
       setIframeUrl(undefined);
-
+      setIsLoadingPreview(false);
       return;
     }
 
+    // Set loading state to true when a new preview is received
+    setIsLoadingPreview(true);
+    
     const { baseUrl } = activePreview;
     setUrl(baseUrl);
-    setIframeUrl(baseUrl);
+    
+    // Immediately update URL display but delay iframe loading
+    // This gives us a chance to show a loading indicator
+    setTimeout(() => {
+      setIframeUrl(baseUrl);
+    }, 100);
   }, [activePreview]);
 
   const validateUrl = useCallback(
@@ -870,6 +1136,12 @@ export const Preview = memo(() => {
         >
           {activePreview ? (
             <>
+              {/* Loading spinner overlay with funny quips - appears on top of the iframe */}
+              {(isLoadingPreview || isInitializing) && (
+                <LoadingOverlay 
+                  message={isInitializing ? "Starting preview server..." : "Compiling your code..."} 
+                />
+              )}
               {isDeviceModeOn && showDeviceFrameInPreview ? (
                 <div
                   className="device-wrapper"
@@ -947,6 +1219,7 @@ export const Preview = memo(() => {
                         display: 'block',
                       }}
                       src={iframeUrl}
+                      onLoad={() => setIsLoadingPreview(false)}
                       sandbox="allow-scripts allow-forms allow-popups allow-modals allow-storage-access-by-user-activation allow-same-origin"
                       allow="cross-origin-isolated"
                     />
@@ -958,6 +1231,7 @@ export const Preview = memo(() => {
                   title="preview"
                   className="border-none w-full h-full bg-bolt-elements-background-depth-1"
                   src={iframeUrl}
+                  onLoad={() => setIsLoadingPreview(false)}
                   sandbox="allow-scripts allow-forms allow-popups allow-modals allow-storage-access-by-user-activation allow-same-origin"
                   allow="cross-origin-isolated"
                 />
