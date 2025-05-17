@@ -188,7 +188,10 @@ export async function getMessages(db: IDBDatabase, id: string): Promise<ChatHist
   return (await getMessagesById(db, id)) || (await getMessagesByUrlId(db, id));
 }
 
-export async function getMessagesByUrlId(db: IDBDatabase, id: string | undefined): Promise<ChatHistoryItem> {
+export async function getMessagesByUrlId(db: IDBDatabase | undefined, id: string | undefined): Promise<ChatHistoryItem> {
+  if (!db) {
+    return Promise.reject(new Error('Database instance is undefined'));
+  }
   if (!id) {
     return Promise.reject(new Error('URL ID is undefined'));
   }
