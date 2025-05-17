@@ -192,27 +192,34 @@ export class FilesStore {
     let bufferTime = 100;
     
     // Create a buffering function that can dynamically adjust its timing
-    const dynamicBufferFn = (...args: any[]) => {
-      // Import workbenchStore to check template loading state
-      import('~/lib/stores/workbench').then(({ workbenchStore }) => {
-        // Use the public getter for templateLoading state
-        if (workbenchStore.isTemplateLoading) {
-          // Use a longer buffer time (300ms) during template loading
-          bufferTime = 300;
-        } else {
-          // Use standard buffer time for normal operations
-          bufferTime = 100;
-        }
-      }).catch(() => {
-        // If import fails, keep using current buffer time
-      });
+    const dynamicBufferFn = (() => {
+      // Cache for the workbenchStore module
+      let cachedWorkbenchStore: typeof import('~/lib/stores/workbench') | null = null;
       
-      // Use the buffer time determined above
-      const bufferedFn = bufferWatchEvents(bufferTime, this.#processEventBuffer.bind(this));
-      // TypeScript doesn't like spreading unknown args to a function
-      // @ts-expect-error args from watchPaths will be the correct type
-      return bufferedFn(...args);
-    };
+      // Pre-load the workbenchStore module to avoid repeated imports
+      import('~/lib/stores/workbench')
+        .then((module) => {
+          cachedWorkbenchStore = module;
+        })
+        .catch(() => {
+          // Module failed to load, we'll use default buffer times
+        });
+      
+      // Preserve reference to 'this' for the closure
+      const self = this;
+      
+      return function(events: PathWatcherEvent[]) {
+        // Check template loading state using cached module if available
+        if (cachedWorkbenchStore) {
+          bufferTime = cachedWorkbenchStore.workbenchStore.isTemplateLoading ? 300 : 100;
+        }
+        
+        // Use the buffer time determined above
+        const bufferedFn = bufferWatchEvents(bufferTime, self.#processEventBuffer.bind(self));
+        // Call the buffered function with the events array as the only argument
+        return bufferedFn(events);
+      };
+    })();
     
     // Set up file watching with our dynamic buffer function
     webcontainer.internal.watchPaths(

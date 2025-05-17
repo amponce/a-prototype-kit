@@ -166,7 +166,6 @@ export class WorkbenchStore {
    */
   setTemplateLoadingState(isLoading: boolean) {
     this.#isTemplateLoading = isLoading;
-    console.log(`Template loading state set to: ${isLoading}`);
   }
 
   setDocuments(files: FileMap) {
@@ -179,18 +178,22 @@ export class WorkbenchStore {
         this.#pendingFileSelection = null;
       }
 
-      // Use a debounced approach for file selection
-      // This prevents rapid file switching during template loading
-      this.#pendingFileSelection = setTimeout(() => {
-        // Find the first file and select it
-        for (const [filePath, dirent] of Object.entries(files)) {
-          if (dirent?.type === 'file') {
-            this.setSelectedFile(filePath);
-            break;
-          }
+      // Define constants for debounce timing
+    const TEMPLATE_LOADING_DELAY = 800; // ms
+    const STANDARD_DELAY = 50; // ms
+    
+    // Use a debounced approach for file selection
+    // This prevents rapid file switching during template loading
+    this.#pendingFileSelection = setTimeout(() => {
+      // Find the first file and select it
+      for (const [filePath, dirent] of Object.entries(files)) {
+        if (dirent?.type === 'file') {
+          this.setSelectedFile(filePath);
+          break;
         }
-        this.#pendingFileSelection = null;
-      }, this.#isTemplateLoading ? 800 : 50); // Longer delay during template loading
+      }
+      this.#pendingFileSelection = null;
+    }, this.#isTemplateLoading ? TEMPLATE_LOADING_DELAY : STANDARD_DELAY); // Longer delay during template loading
     }
   }
 

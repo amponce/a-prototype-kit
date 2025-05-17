@@ -301,13 +301,22 @@ export const Workbench = memo(
     };
 
     useEffect(() => {
+      let timeoutId: NodeJS.Timeout | null = null;
+      
       if (hasPreview) {
         // Add a small delay before switching to preview
         // This gives time for the loading state to be shown first
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           setSelectedView('preview');
         }, 100);
       }
+      
+      // Clean up timeout if component unmounts
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      };
     }, [hasPreview]);
 
     useEffect(() => {
