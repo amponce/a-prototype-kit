@@ -72,25 +72,115 @@ export async function setMessages(
   metadata?: IChatMetadata,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction('chats', 'readwrite');
-    const store = transaction.objectStore('chats');
+    try {
+      // First validate the timestamp
+      if (timestamp && isNaN(Date.parse(timestamp))) {
+        reject(new Error('Invalid timestamp'));
+        return;
+      }
 
-    if (timestamp && isNaN(Date.parse(timestamp))) {
-      reject(new Error('Invalid timestamp'));
-      return;
+      /*
+       * Always generate a unique urlId to avoid index conflicts
+       * This ensures we don't hit the uniqueness constraint
+       */
+      const safeUniqueUrlId = urlId
+        ? `${urlId.split('-')[0]}-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 5)}`
+        : undefined;
+
+      console.log(`Using safe urlId ${safeUniqueUrlId} instead of ${urlId}`);
+      urlId = safeUniqueUrlId;
+
+      // Original code continues - save with our safe urlId
+      validateAndSaveMessages();
+
+      // Helper function to validate urlId and save messages
+      function validateAndSaveMessages() {
+        // Step 1: Check if urlId exists and needs validation
+        if (urlId) {
+          getUrlIds(db)
+            .then((existingUrlIds) => {
+              return getMessagesByUrlId(db, urlId).then((existingChat) => {
+                /*
+                 * If this urlId already exists but is associated with a different id,
+                 * we need to generate a new unique urlId
+                 */
+                if (existingChat && existingChat.id !== id) {
+                  // Generate a new unique ID by appending a number
+                  let i = 2;
+                  let newUrlId = `${urlId}-${i}`;
+
+                  while (existingUrlIds.includes(newUrlId)) {
+                    i++;
+                    newUrlId = `${urlId}-${i}`;
+                  }
+
+                  console.log(`urlId collision detected. Changed from ${urlId} to ${newUrlId}`);
+                  urlId = newUrlId;
+                }
+
+                // Step 2: Save with the validated urlId
+                saveToDatabase();
+              });
+            })
+            .catch((error) => {
+              console.error('Error validating urlId:', error);
+
+              // Try to save anyway, the database will enforce uniqueness
+              saveToDatabase();
+            });
+        } else {
+          // No urlId to validate, proceed directly to saving
+          saveToDatabase();
+        }
+      }
+
+      // Helper function to perform the actual database save
+      function saveToDatabase() {
+        const transaction = db.transaction('chats', 'readwrite');
+        const store = transaction.objectStore('chats');
+
+        const request = store.put({
+          id,
+          messages,
+          urlId,
+          description,
+          timestamp: timestamp ?? new Date().toISOString(),
+          metadata,
+        });
+
+        request.onsuccess = () => resolve();
+
+        request.onerror = (event) => {
+          // Log detailed error information
+          console.error('IndexedDB error in setMessages:', event);
+          console.error('Error details:', request.error);
+          console.error('Attempted to save chat with id:', id, 'urlId:', urlId);
+
+          // Try one more time with a completely random urlId as a last resort
+          if (urlId && request.error?.name === 'ConstraintError') {
+            const fallbackUrlId = `chat-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+            console.warn(`Retrying with fallback urlId: ${fallbackUrlId}`);
+
+            const retryRequest = store.put({
+              id,
+              messages,
+              urlId: fallbackUrlId,
+              description,
+              timestamp: timestamp ?? new Date().toISOString(),
+              metadata,
+            });
+
+            retryRequest.onsuccess = () => resolve();
+            retryRequest.onerror = () => reject(request.error);
+          } else {
+            reject(request.error);
+          }
+        };
+      }
+    } catch (error) {
+      console.error('Unexpected error in setMessages:', error);
+      reject(error);
     }
-
-    const request = store.put({
-      id,
-      messages,
-      urlId,
-      description,
-      timestamp: timestamp ?? new Date().toISOString(),
-      metadata,
-    });
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
   });
 }
 
@@ -98,7 +188,11 @@ export async function getMessages(db: IDBDatabase, id: string): Promise<ChatHist
   return (await getMessagesById(db, id)) || (await getMessagesByUrlId(db, id));
 }
 
-export async function getMessagesByUrlId(db: IDBDatabase, id: string): Promise<ChatHistoryItem> {
+export async function getMessagesByUrlId(db: IDBDatabase, id: string | undefined): Promise<ChatHistoryItem> {
+  if (!id) {
+    return Promise.reject(new Error('URL ID is undefined'));
+  }
+
   return new Promise((resolve, reject) => {
     const transaction = db.transaction('chats', 'readonly');
     const store = transaction.objectStore('chats');
@@ -209,10 +303,16 @@ async function getUrlIds(db: IDBDatabase): Promise<string[]> {
       const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
 
       if (cursor) {
-        idList.push(cursor.value.urlId);
+        // Only add urlId if it is defined and not null
+        if (cursor.value.urlId !== undefined && cursor.value.urlId !== null) {
+          idList.push(cursor.value.urlId);
+        }
+
         cursor.continue();
       } else {
-        resolve(idList);
+        // Filter out any undefined or empty values
+        const validIds = idList.filter((id) => id !== undefined && id !== null && id !== '');
+        resolve(validIds);
       }
     };
 

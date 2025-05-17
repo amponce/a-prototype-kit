@@ -87,17 +87,28 @@ export const Preview = memo(() => {
   const [showDeviceFrame, setShowDeviceFrame] = useState(true);
   const [showDeviceFrameInPreview, setShowDeviceFrameInPreview] = useState(false);
 
+  // Track loading state for preview
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  
   useEffect(() => {
     if (!activePreview) {
       setUrl('');
       setIframeUrl(undefined);
-
+      setIsLoadingPreview(false);
       return;
     }
 
+    // Set loading state to true when a new preview is received
+    setIsLoadingPreview(true);
+    
     const { baseUrl } = activePreview;
     setUrl(baseUrl);
-    setIframeUrl(baseUrl);
+    
+    // Immediately update URL display but delay iframe loading
+    // This gives us a chance to show a loading indicator
+    setTimeout(() => {
+      setIframeUrl(baseUrl);
+    }, 100);
   }, [activePreview]);
 
   const validateUrl = useCallback(
@@ -870,7 +881,15 @@ export const Preview = memo(() => {
         >
           {activePreview ? (
             <>
-              {isDeviceModeOn && showDeviceFrameInPreview ? (
+              {isLoadingPreview && !iframeUrl ? (
+                <div className="flex flex-col w-full h-full justify-center items-center bg-bolt-elements-background-depth-1 text-bolt-elements-textPrimary">
+                  <div className="mb-4 text-xl">
+                    <div className="i-ph:spinner animate-spin" style={{ width: '2.5rem', height: '2.5rem' }}></div>
+                  </div>
+                  <p className="text-lg mb-1 font-medium">Compiling your code...</p>
+                  <p className="text-sm text-bolt-elements-textSecondary">This may take a few seconds</p>
+                </div>
+              ) : isDeviceModeOn && showDeviceFrameInPreview ? (
                 <div
                   className="device-wrapper"
                   style={{
@@ -947,6 +966,7 @@ export const Preview = memo(() => {
                         display: 'block',
                       }}
                       src={iframeUrl}
+                      onLoad={() => setIsLoadingPreview(false)}
                       sandbox="allow-scripts allow-forms allow-popups allow-modals allow-storage-access-by-user-activation allow-same-origin"
                       allow="cross-origin-isolated"
                     />
@@ -958,6 +978,7 @@ export const Preview = memo(() => {
                   title="preview"
                   className="border-none w-full h-full bg-bolt-elements-background-depth-1"
                   src={iframeUrl}
+                  onLoad={() => setIsLoadingPreview(false)}
                   sandbox="allow-scripts allow-forms allow-popups allow-modals allow-storage-access-by-user-activation allow-same-origin"
                   allow="cross-origin-isolated"
                 />

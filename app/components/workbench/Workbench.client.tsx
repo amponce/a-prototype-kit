@@ -36,7 +36,7 @@ interface WorkspaceProps {
   updateChatMestaData?: (metadata: any) => void;
 }
 
-const viewTransition = { ease: cubicEasingFn };
+const viewTransition = { ease: cubicEasingFn, duration: 0.2 };
 
 const sliderOptions: SliderOptions<WorkbenchViewType> = {
   left: {
@@ -302,7 +302,11 @@ export const Workbench = memo(
 
     useEffect(() => {
       if (hasPreview) {
-        setSelectedView('preview');
+        // Add a small delay before switching to preview
+        // This gives time for the loading state to be shown first
+        setTimeout(() => {
+          setSelectedView('preview');
+        }, 100);
       }
     }, [hasPreview]);
 

@@ -166,9 +166,58 @@ export class FilesStore {
     // Clean up any files that were previously deleted
     this.#cleanupDeletedFiles();
 
+    // Get the current template loading state to determine buffer timing
+    const getTemplateLoading = async () => {
+      try {
+        const { workbenchStore } = await import('~/lib/stores/workbench');
+        // Pass a reference to allow dynamically adjusting the buffer time
+        this.#setupWatchPathsWithDynamicBuffer(webcontainer);
+      } catch (error) {
+        // If import fails, fall back to standard buffer timing
+        webcontainer.internal.watchPaths(
+          { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
+          bufferWatchEvents(100, this.#processEventBuffer.bind(this)),
+        );
+      }
+    };
+
+    getTemplateLoading();
+  }
+
+  /**
+   * Sets up file watching with a dynamic buffer time that adjusts based on template loading state
+   */
+  #setupWatchPathsWithDynamicBuffer(webcontainer: WebContainer) {
+    // Default buffer time is 100ms for normal operations
+    let bufferTime = 100;
+    
+    // Create a buffering function that can dynamically adjust its timing
+    const dynamicBufferFn = (...args: any[]) => {
+      // Import workbenchStore to check template loading state
+      import('~/lib/stores/workbench').then(({ workbenchStore }) => {
+        // Use the public getter for templateLoading state
+        if (workbenchStore.isTemplateLoading) {
+          // Use a longer buffer time (300ms) during template loading
+          bufferTime = 300;
+        } else {
+          // Use standard buffer time for normal operations
+          bufferTime = 100;
+        }
+      }).catch(() => {
+        // If import fails, keep using current buffer time
+      });
+      
+      // Use the buffer time determined above
+      const bufferedFn = bufferWatchEvents(bufferTime, this.#processEventBuffer.bind(this));
+      // TypeScript doesn't like spreading unknown args to a function
+      // @ts-expect-error args from watchPaths will be the correct type
+      return bufferedFn(...args);
+    };
+    
+    // Set up file watching with our dynamic buffer function
     webcontainer.internal.watchPaths(
       { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
-      bufferWatchEvents(100, this.#processEventBuffer.bind(this)),
+      dynamicBufferFn,
     );
   }
 

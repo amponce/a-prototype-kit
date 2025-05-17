@@ -41,6 +41,11 @@ export class WorkbenchStore {
   #editorStore = new EditorStore(this.#filesStore);
   #terminalStore = new TerminalStore(webcontainer);
 
+  // Flag to track if a template is currently being loaded
+  #isTemplateLoading = false;
+  // Timeout handle for debounced file selection
+  #pendingFileSelection: NodeJS.Timeout | null = null;
+
   #reloadedMessages = new Set<string>();
 
   artifacts: Artifacts = import.meta.hot?.data.artifacts ?? map({});
@@ -135,6 +140,10 @@ export class WorkbenchStore {
   clearDeployAlert() {
     this.deployAlert.set(undefined);
   }
+  
+  get isTemplateLoading() {
+    return this.#isTemplateLoading;
+  }
 
   toggleTerminal(value?: boolean) {
     this.#terminalStore.toggleTerminal(value);
@@ -151,17 +160,37 @@ export class WorkbenchStore {
     this.#terminalStore.onTerminalResize(cols, rows);
   }
 
+  /**
+   * Sets the template loading state to prevent file selection flickering
+   * @param isLoading Whether a template is currently being loaded
+   */
+  setTemplateLoadingState(isLoading: boolean) {
+    this.#isTemplateLoading = isLoading;
+    console.log(`Template loading state set to: ${isLoading}`);
+  }
+
   setDocuments(files: FileMap) {
     this.#editorStore.setDocuments(files);
 
     if (this.#filesStore.filesCount > 0 && this.currentDocument.get() === undefined) {
-      // we find the first file and select it
-      for (const [filePath, dirent] of Object.entries(files)) {
-        if (dirent?.type === 'file') {
-          this.setSelectedFile(filePath);
-          break;
-        }
+      // Clear any pending file selection
+      if (this.#pendingFileSelection) {
+        clearTimeout(this.#pendingFileSelection);
+        this.#pendingFileSelection = null;
       }
+
+      // Use a debounced approach for file selection
+      // This prevents rapid file switching during template loading
+      this.#pendingFileSelection = setTimeout(() => {
+        // Find the first file and select it
+        for (const [filePath, dirent] of Object.entries(files)) {
+          if (dirent?.type === 'file') {
+            this.setSelectedFile(filePath);
+            break;
+          }
+        }
+        this.#pendingFileSelection = null;
+      }, this.#isTemplateLoading ? 800 : 50); // Longer delay during template loading
     }
   }
 
