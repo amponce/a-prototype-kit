@@ -126,8 +126,7 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [apiKeyMissing, setApiKeyMissing] = useState(false);
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
-    
-    
+
     useEffect(() => {
       if (data) {
         const progressList = data.filter(

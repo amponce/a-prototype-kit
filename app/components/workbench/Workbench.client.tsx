@@ -302,11 +302,22 @@ export const Workbench = memo(
 
     useEffect(() => {
       if (hasPreview) {
-        // Add a small delay before switching to preview
-        // This gives time for the loading state to be shown first
-        setTimeout(() => {
-          setSelectedView('preview');
-        }, 100);
+        /*
+         * Add a delay before switching to preview
+         * Check if we're loading a template to use a longer delay
+         */
+        if (workbenchStore.isTemplateLoading) {
+          console.log('Workbench: Using longer delay (800ms) for preview due to template loading');
+          setTimeout(() => {
+            setSelectedView('preview');
+          }, 800);
+        } else {
+          // Standard delay when not loading templates
+          console.log('Workbench: Using standard delay (300ms) for preview');
+          setTimeout(() => {
+            setSelectedView('preview');
+          }, 300);
+        }
       }
     }, [hasPreview]);
 

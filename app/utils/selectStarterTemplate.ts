@@ -286,16 +286,44 @@ export async function getTemplates(templateName: string, title?: string) {
     filesToImport.ignoreFile = ignoredFiles;
   }
 
+  // Group files by directory level for more efficient processing
+  const filesByLevel: { [level: number]: Array<{name: string; path: string; content: string}> } = {};
+  
+  // Calculate directory level based on path segments
+  filesToImport.files.forEach(file => {
+    const level = file.path.split('/').length - 1;
+    if (!filesByLevel[level]) {
+      filesByLevel[level] = [];
+    }
+    filesByLevel[level].push(file);
+  });
+  
+  // Sort levels to process directories first
+  const levels = Object.keys(filesByLevel).map(Number).sort();
+  
+  // Create batches of files for better performance
+  const batches: Array<Array<{name: string; path: string; content: string}>> = [];
+  const BATCH_SIZE = 10; // Process 10 files at a time
+  
+  // Create batches by level
+  levels.forEach(level => {
+    const levelFiles = filesByLevel[level];
+    for (let i = 0; i < levelFiles.length; i += BATCH_SIZE) {
+      const batch = levelFiles.slice(i, i + BATCH_SIZE);
+      batches.push(batch);
+    }
+  });
+  
+  // Create artifact with multiple bundled sections (one per batch)
   const assistantMessage = `
 <boltArtifact id="imported-files" title="${title || 'Importing Starter Files'}" type="bundled">
-${filesToImport.files
-  .map(
-    (file) =>
-      `<boltAction type="file" filePath="${file.path}">
+${batches.map((batch, batchIndex) => 
+  `<!-- Batch ${batchIndex + 1} of ${batches.length} -->
+${batch.map((file) => 
+  `<boltAction type="file" filePath="${file.path}">
 ${file.content}
-</boltAction>`,
-  )
-  .join('\n')}
+</boltAction>`).join('\n')}`
+).join('\n\n')}
 </boltArtifact>
 `;
   let userMessage = ``;

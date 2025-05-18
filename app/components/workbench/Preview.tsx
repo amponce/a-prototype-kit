@@ -89,26 +89,42 @@ export const Preview = memo(() => {
 
   // Track loading state for preview
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-  
+
   useEffect(() => {
     if (!activePreview) {
       setUrl('');
       setIframeUrl(undefined);
       setIsLoadingPreview(false);
+
       return;
     }
 
     // Set loading state to true when a new preview is received
     setIsLoadingPreview(true);
-    
+
     const { baseUrl } = activePreview;
     setUrl(baseUrl);
-    
-    // Immediately update URL display but delay iframe loading
-    // This gives us a chance to show a loading indicator
-    setTimeout(() => {
-      setIframeUrl(baseUrl);
-    }, 100);
+
+    /*
+     * Immediately update URL display but delay iframe loading
+     * This gives us a chance to show a loading indicator
+     * We'll check if templates are loading to adjust delay
+     */
+    import('~/lib/stores/workbench').then(({ workbenchStore }) => {
+      // Use a longer delay if templates are loading
+      const delay = workbenchStore.isTemplateLoading ? 1000 : 300;
+      console.log(`Preview: Setting iframe URL with ${delay}ms delay (template loading: ${workbenchStore.isTemplateLoading})`);
+      
+      setTimeout(() => {
+        setIframeUrl(baseUrl);
+      }, delay);
+    }).catch(() => {
+      // If import fails, use default delay
+      console.log('Preview: Failed to check template loading state, using default delay');
+      setTimeout(() => {
+        setIframeUrl(baseUrl);
+      }, 300);
+    });
   }, [activePreview]);
 
   const validateUrl = useCallback(

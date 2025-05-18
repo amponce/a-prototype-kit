@@ -170,6 +170,7 @@ export class FilesStore {
     const getTemplateLoading = async () => {
       try {
         const { workbenchStore } = await import('~/lib/stores/workbench');
+
         // Pass a reference to allow dynamically adjusting the buffer time
         this.#setupWatchPathsWithDynamicBuffer(webcontainer);
       } catch (error) {
@@ -188,37 +189,58 @@ export class FilesStore {
    * Sets up file watching with a dynamic buffer time that adjusts based on template loading state
    */
   #setupWatchPathsWithDynamicBuffer(webcontainer: WebContainer) {
-    // Default buffer time is 100ms for normal operations
-    let bufferTime = 100;
+    // Start with a longer buffer time for initial setup (500ms)
+    let bufferTime = 500;
+    
+    // Flag to track if we're already checking template state
+    let isCheckingTemplateState = false;
     
     // Create a buffering function that can dynamically adjust its timing
     const dynamicBufferFn = (...args: any[]) => {
-      // Import workbenchStore to check template loading state
-      import('~/lib/stores/workbench').then(({ workbenchStore }) => {
-        // Use the public getter for templateLoading state
-        if (workbenchStore.isTemplateLoading) {
-          // Use a longer buffer time (300ms) during template loading
-          bufferTime = 300;
-        } else {
-          // Use standard buffer time for normal operations
-          bufferTime = 100;
-        }
-      }).catch(() => {
-        // If import fails, keep using current buffer time
-      });
+      // Use the current buffer time for this batch of events
+      const currentBufferTime = bufferTime;
+      const bufferedFn = bufferWatchEvents(currentBufferTime, this.#processEventBuffer.bind(this));
       
-      // Use the buffer time determined above
-      const bufferedFn = bufferWatchEvents(bufferTime, this.#processEventBuffer.bind(this));
-      // TypeScript doesn't like spreading unknown args to a function
-      // @ts-expect-error args from watchPaths will be the correct type
-      return bufferedFn(...args);
+      // Only check template state if we're not already checking
+      if (!isCheckingTemplateState) {
+        isCheckingTemplateState = true;
+        
+        // Import workbenchStore to check template loading state
+        import('~/lib/stores/workbench')
+          .then(({ workbenchStore }) => {
+            // Use the public getter for templateLoading state
+            if (workbenchStore.isTemplateLoading) {
+              // Use a longer buffer time (500ms) during template loading
+              bufferTime = 500;
+              console.log('File watcher: Increased buffer time to 500ms for template loading');
+            } else {
+              // Gradually decrease buffer time to normal operations
+              // But don't go below 100ms
+              bufferTime = Math.max(100, bufferTime - 50);
+              console.log(`File watcher: Adjusted buffer time to ${bufferTime}ms`);
+            }
+            isCheckingTemplateState = false;
+          })
+          .catch(() => {
+            // If import fails, keep using current buffer time
+            isCheckingTemplateState = false;
+          });
+      }
+
+      /*
+       * TypeScript doesn't like spreading unknown args to a function
+       * We need to call the function with the first argument from args
+       */
+      return bufferedFn(args[0]);
     };
-    
+
     // Set up file watching with our dynamic buffer function
     webcontainer.internal.watchPaths(
       { include: [`${WORK_DIR}/**`], exclude: ['**/node_modules', '.git'], includeContent: true },
       dynamicBufferFn,
     );
+    
+    console.log('File watcher: Set up dynamic buffer with initial time of 500ms');
   }
 
   /**

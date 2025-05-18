@@ -322,66 +322,103 @@ export const ChatImpl = memo(
         setFakeLoading(true);
 
         if (autoSelectTemplate) {
-          const { template, title } = await selectStarterTemplate({
-            message: messageContent,
-            model: selectedModel,
-            provider: activeProviders.find((p) => p.name === selectedProvider) || currentProvider,
-          });
-
-          if (template !== 'blank') {
-            const temResp = await getTemplates(template, title).catch((e) => {
-              if (e.message.includes('rate limit')) {
-                toast.warning('Rate limit exceeded. Skipping starter template\n Continuing with blank template');
-              } else {
-                toast.warning('Failed to import starter template\n Continuing with blank template');
-              }
-
-              return null;
+          // Set template loading state to true before starting
+          workbenchStore.setTemplateLoadingState(true);
+          console.log('Chat: Started template loading process');
+          
+          try {
+            const { template, title } = await selectStarterTemplate({
+              message: messageContent,
+              model: selectedModel,
+              provider: activeProviders.find((p) => p.name === selectedProvider) || currentProvider,
             });
 
-            if (temResp) {
-              const { assistantMessage, userMessage } = temResp;
-              setMessages([
-                {
-                  id: `1-${new Date().getTime()}`,
-                  role: 'user',
-                  content: [
+            console.log(`Chat: Selected template "${template}" with title "${title}"`);
+
+            if (template !== 'blank') {
+              try {
+                console.log(`Chat: Loading template files for "${template}"`);
+                const temResp = await getTemplates(template, title);
+                
+                if (temResp) {
+                  const { assistantMessage, userMessage } = temResp;
+                  setMessages([
                     {
-                      type: 'text',
-                      text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${messageContent}`,
+                      id: `1-${new Date().getTime()}`,
+                      role: 'user',
+                      content: [
+                        {
+                          type: 'text',
+                          text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${messageContent}`,
+                        },
+                        ...imageDataList.map((imageData) => ({
+                          type: 'image',
+                          image: imageData,
+                        })),
+                      ] as any,
                     },
-                    ...imageDataList.map((imageData) => ({
-                      type: 'image',
-                      image: imageData,
-                    })),
-                  ] as any,
-                },
-                {
-                  id: `2-${new Date().getTime()}`,
-                  role: 'assistant',
-                  content: assistantMessage,
-                },
-                {
-                  id: `3-${new Date().getTime()}`,
-                  role: 'user',
-                  content: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${userMessage}`,
-                  annotations: ['hidden'],
-                },
-              ]);
-              reload();
-              setInput('');
-              Cookies.remove(PROMPT_COOKIE_KEY);
-
-              setUploadedFiles([]);
-              setImageDataList([]);
-
-              resetEnhancer();
-
-              textareaRef.current?.blur();
-              setFakeLoading(false);
-
-              return;
+                    {
+                      id: `2-${new Date().getTime()}`,
+                      role: 'assistant',
+                      content: assistantMessage,
+                    },
+                    {
+                      id: `3-${new Date().getTime()}`,
+                      role: 'user',
+                      content: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${userMessage}`,
+                      annotations: ['hidden'],
+                    },
+                  ]);
+                  
+                  reload();
+                  console.log(`Chat: Template loaded successfully, reloading chat`);
+                  
+                  setInput('');
+                  Cookies.remove(PROMPT_COOKIE_KEY);
+                  setUploadedFiles([]);
+                  setImageDataList([]);
+                  resetEnhancer();
+                  textareaRef.current?.blur();
+                  
+                  // Keep template loading state true for a bit longer to ensure all files are processed
+                  setTimeout(() => {
+                    workbenchStore.setTemplateLoadingState(false);
+                    console.log('Chat: Finished template loading process');
+                    setFakeLoading(false);
+                  }, 2000);
+                  
+                  return;
+                }
+              } catch (e) {
+                const errorMessage = e instanceof Error ? e.message : String(e);
+                console.error(`Chat: Template loading error: ${errorMessage}`);
+                
+                // More detailed error handling
+                if (errorMessage.includes('rate limit')) {
+                  toast.warning('Rate limit exceeded. Skipping starter template\n Continuing with blank template');
+                } else if (errorMessage.includes('network')) {
+                  toast.error('Network error loading template. Please check your connection.');
+                } else if (errorMessage.includes('404')) {
+                  toast.error('Template files not found. Please try a different template.');
+                } else {
+                  toast.warning('Failed to import starter template\n Continuing with blank template');
+                }
+                
+                // Log the error for troubleshooting
+                logStore.logError('Template loading failed', e, {
+                  component: 'Chat',
+                  action: 'loadTemplate',
+                  template,
+                  error: errorMessage
+                });
+              }
             }
+          } finally {
+            // Always make sure template loading state is reset after a delay
+            setTimeout(() => {
+              workbenchStore.setTemplateLoadingState(false);
+              console.log('Chat: Reset template loading state');
+            }, 1000);
           }
         }
 

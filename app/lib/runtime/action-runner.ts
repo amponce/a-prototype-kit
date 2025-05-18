@@ -259,14 +259,76 @@ export class ActionRunner {
       unreachable('Shell terminal not found');
     }
 
-    const resp = await shell.executeCommand(this.runnerId.get(), action.content, () => {
-      logger.debug(`[${action.type}]:Aborting Action\n\n`, action);
-      action.abort();
-    });
-    logger.debug(`${action.type} Shell Response: [exit code:${resp?.exitCode}]`);
+    // Special handling for npm commands
+    const isNpmInstall = action.content.trim().startsWith('npm install');
+    const isNpmRunDev = action.content.trim().startsWith('npm run dev');
 
-    if (resp?.exitCode != 0) {
-      throw new ActionCommandError(`Failed To Execute Shell Command`, resp?.output || 'No Output Available');
+    if (isNpmInstall || isNpmRunDev) {
+      // Show custom alert for npm operations
+      const operationType = isNpmInstall ? 'Installing packages' : 'Starting development server';
+
+      this.onAlert?.({
+        type: 'info',
+        title: operationType,
+        description: `${operationType}. This may take a moment...`,
+        content: '',
+      });
+
+      // Add octo animation to the terminal
+      shell.terminal?.write('\n\r\x1b[96m🐙 Octo is working on it...\x1b[0m\n\r');
+
+      // Create a loading animation interval
+      const animations = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+      let i = 0;
+
+      const intervalId = setInterval(() => {
+        shell.terminal?.write(`\r\x1b[96m${animations[i++ % animations.length]} ${operationType}...\x1b[0m`);
+      }, 100);
+
+      try {
+        const resp = await shell.executeCommand(this.runnerId.get(), action.content, () => {
+          clearInterval(intervalId);
+          logger.debug(`[${action.type}]:Aborting Action\n\n`, action);
+          action.abort();
+        });
+
+        // Clear the interval once done
+        clearInterval(intervalId);
+        shell.terminal?.write(`\n\r\x1b[92m✓ ${operationType} completed!\x1b[0m\n\r`);
+
+        logger.debug(`${action.type} Shell Response: [exit code:${resp?.exitCode}]`);
+
+        if (resp?.exitCode != 0) {
+          shell.terminal?.write(`\n\r\x1b[91m✗ ${operationType} failed!\x1b[0m\n\r`);
+          throw new ActionCommandError(`Failed To Execute Shell Command`, resp?.output || 'No Output Available');
+        }
+
+        // Clear the alert
+        this.onAlert?.({
+          type: 'success',
+          title: `${operationType} completed`,
+          description: `${operationType} completed successfully.`,
+          content: '',
+        });
+
+        return resp;
+      } catch (error) {
+        clearInterval(intervalId);
+        throw error;
+      }
+    } else {
+      // Regular command execution
+      const resp = await shell.executeCommand(this.runnerId.get(), action.content, () => {
+        logger.debug(`[${action.type}]:Aborting Action\n\n`, action);
+        action.abort();
+      });
+      logger.debug(`${action.type} Shell Response: [exit code:${resp?.exitCode}]`);
+
+      if (resp?.exitCode != 0) {
+        throw new ActionCommandError(`Failed To Execute Shell Command`, resp?.output || 'No Output Available');
+      }
+
+      return resp;
     }
   }
 
@@ -286,17 +348,78 @@ export class ActionRunner {
       unreachable('Shell terminal not found');
     }
 
-    const resp = await shell.executeCommand(this.runnerId.get(), action.content, () => {
-      logger.debug(`[${action.type}]:Aborting Action\n\n`, action);
-      action.abort();
-    });
-    logger.debug(`${action.type} Shell Response: [exit code:${resp?.exitCode}]`);
+    // Check if dependencies are installed before running the app
+    shell.terminal?.write('\n\r\x1b[96m🐙 Octo is checking for dependencies...\x1b[0m\n\r');
 
-    if (resp?.exitCode != 0) {
-      throw new ActionCommandError('Failed To Start Application', resp?.output || 'No Output Available');
+    try {
+      // Check if node_modules exists
+      const nodeModulesCheck = await shell.executeCommand(
+        this.runnerId.get(),
+        "if [ -d 'node_modules' ]; then echo 'exists'; else echo 'missing'; fi",
+        () => {
+          // Intentionally empty - no abort handler needed for this check
+        },
+      );
+
+      // If node_modules is missing, install dependencies first
+      if (nodeModulesCheck?.output?.includes('missing')) {
+        shell.terminal?.write('\n\r\x1b[93m⚠️ Dependencies not found. Installing packages first...\x1b[0m\n\r');
+
+        // Run npm install
+        await this.#runShellAction({
+          type: 'shell',
+          content: 'npm install',
+          changeSource: 'auto',
+          abort: () => {
+            // Intentionally empty - no custom abort needed for this action
+          },
+          abortSignal: new AbortController().signal,
+          executed: false,
+          status: 'running',
+        } as ActionState);
+
+        shell.terminal?.write('\n\r\x1b[92m✓ Dependencies installed successfully!\x1b[0m\n\r');
+      }
+    } catch (error) {
+      logger.error('Error checking for dependencies:', error);
+
+      // Continue with starting the app even if dependency check fails
     }
 
-    return resp;
+    // Now start the application
+    shell.terminal?.write('\n\r\x1b[96m🐙 Octo is starting the application...\x1b[0m\n\r');
+
+    // Create a loading animation interval
+    const animations = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+    let i = 0;
+
+    const intervalId = setInterval(() => {
+      shell.terminal?.write(`\r\x1b[96m${animations[i++ % animations.length]} Starting development server...\x1b[0m`);
+    }, 100);
+
+    try {
+      const resp = await shell.executeCommand(this.runnerId.get(), action.content, () => {
+        clearInterval(intervalId);
+        logger.debug(`[${action.type}]:Aborting Action\n\n`, action);
+        action.abort();
+      });
+
+      // Clear the interval once done
+      clearInterval(intervalId);
+      shell.terminal?.write(`\n\r\x1b[92m✓ Application started successfully!\x1b[0m\n\r`);
+
+      logger.debug(`${action.type} Shell Response: [exit code:${resp?.exitCode}]`);
+
+      if (resp?.exitCode != 0) {
+        shell.terminal?.write(`\n\r\x1b[91m✗ Failed to start the application!\x1b[0m\n\r`);
+        throw new ActionCommandError('Failed To Start Application', resp?.output || 'No Output Available');
+      }
+
+      return resp;
+    } catch (error) {
+      clearInterval(intervalId);
+      throw error;
+    }
   }
 
   async #runFileAction(action: ActionState) {

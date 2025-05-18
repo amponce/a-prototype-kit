@@ -34,45 +34,53 @@ export interface ChatHistoryItem {
 
 const persistenceEnabled = !import.meta.env.VITE_DISABLE_PERSISTENCE;
 
-// EMERGENCY FIX: Add more resilient database initialization
+// Add resilient database initialization
 let db: IDBDatabase | undefined = undefined;
 
 try {
   if (persistenceEnabled) {
     // First attempt to open the database
     db = await openDatabase();
-    
+
     // Verify the database is properly opened and has the required object stores
     if (db && !db.objectStoreNames.contains('chats')) {
       console.error('Database opened but missing "chats" object store - will reset DB');
+
       // Force a reset/recreation by incrementing version
       try {
         db.close();
+
         // Try to open with incremented version to force schema creation
         db = await new Promise((resolve) => {
           const req = indexedDB.open('boltHistory', 3); // Bump to version 3
-          
+
           req.onupgradeneeded = (event) => {
             const newDb = req.result;
+
             if (!newDb.objectStoreNames.contains('chats')) {
               const store = newDb.createObjectStore('chats', { keyPath: 'id' });
               store.createIndex('id', 'id', { unique: true });
-              // EMERGENCY FIX: Don't create the urlId index that's causing problems
-              // store.createIndex('urlId', 'urlId', { unique: true });
+
+              /*
+               * Don't create the urlId index that was causing problems
+               * store.createIndex('urlId', 'urlId', { unique: true });
+               */
             }
+
             if (!newDb.objectStoreNames.contains('snapshots')) {
               newDb.createObjectStore('snapshots', { keyPath: 'chatId' });
             }
           };
-          
+
           req.onsuccess = () => resolve(req.result);
+
           req.onerror = () => {
             console.error('Failed to recreate database structure', req.error);
             resolve(undefined);
           };
         });
-        
-        console.log('Emergency database structure created: ', db ? 'success' : 'failed');
+
+        console.log('Database structure recreated: ', db ? 'success' : 'failed');
       } catch (innerError) {
         console.error('Inner database recreation error:', innerError);
       }
@@ -80,6 +88,7 @@ try {
   }
 } catch (error) {
   console.error('Fatal database initialization error:', error);
+
   // Continue without persistence
   db = undefined;
 }
@@ -340,17 +349,17 @@ ${value.content}
           _urlId = generatedUrlId;
           navigateChat(generatedUrlId);
           setUrlId(generatedUrlId);
-          
+
           console.log(`Generated new urlId: ${generatedUrlId} from artifact id: ${firstArtifact.id}`);
         } catch (error) {
-          console.error("Error generating urlId:", error);
-          
+          console.error('Error generating urlId:', error);
+
           // Fallback to using a timestamp-based ID if there's an error
           const fallbackId = `chat-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
           _urlId = fallbackId;
           navigateChat(fallbackId);
           setUrlId(fallbackId);
-          
+
           console.log(`Using fallback urlId: ${fallbackId} due to error`);
         }
       }

@@ -43,6 +43,7 @@ export class WorkbenchStore {
 
   // Flag to track if a template is currently being loaded
   #isTemplateLoading = false;
+
   // Timeout handle for debounced file selection
   #pendingFileSelection: NodeJS.Timeout | null = null;
 
@@ -54,11 +55,11 @@ export class WorkbenchStore {
   currentView: WritableAtom<WorkbenchViewType> = import.meta.hot?.data.currentView ?? atom('code');
   unsavedFiles: WritableAtom<Set<string>> = import.meta.hot?.data.unsavedFiles ?? atom(new Set<string>());
   actionAlert: WritableAtom<ActionAlert | undefined> =
-    import.meta.hot?.data.unsavedFiles ?? atom<ActionAlert | undefined>(undefined);
+    import.meta.hot?.data.actionAlert ?? atom<ActionAlert | undefined>(undefined);
   supabaseAlert: WritableAtom<SupabaseAlert | undefined> =
-    import.meta.hot?.data.unsavedFiles ?? atom<ActionAlert | undefined>(undefined);
+    import.meta.hot?.data.supabaseAlert ?? atom<SupabaseAlert | undefined>(undefined);
   deployAlert: WritableAtom<DeployAlert | undefined> =
-    import.meta.hot?.data.unsavedFiles ?? atom<DeployAlert | undefined>(undefined);
+    import.meta.hot?.data.deployAlert ?? atom<DeployAlert | undefined>(undefined);
   modifiedFiles = new Set<string>();
   artifactIdList: string[] = [];
   #globalExecutionQueue = Promise.resolve();
@@ -140,7 +141,7 @@ export class WorkbenchStore {
   clearDeployAlert() {
     this.deployAlert.set(undefined);
   }
-  
+
   get isTemplateLoading() {
     return this.#isTemplateLoading;
   }
@@ -179,18 +180,23 @@ export class WorkbenchStore {
         this.#pendingFileSelection = null;
       }
 
-      // Use a debounced approach for file selection
-      // This prevents rapid file switching during template loading
-      this.#pendingFileSelection = setTimeout(() => {
-        // Find the first file and select it
-        for (const [filePath, dirent] of Object.entries(files)) {
-          if (dirent?.type === 'file') {
-            this.setSelectedFile(filePath);
-            break;
+      /*
+       * Use a debounced approach for file selection
+       * This prevents rapid file switching during template loading
+       */
+      this.#pendingFileSelection = setTimeout(
+        () => {
+          // Find the first file and select it
+          for (const [filePath, dirent] of Object.entries(files)) {
+            if (dirent?.type === 'file') {
+              this.setSelectedFile(filePath);
+              break;
+            }
           }
-        }
-        this.#pendingFileSelection = null;
-      }, this.#isTemplateLoading ? 800 : 50); // Longer delay during template loading
+          this.#pendingFileSelection = null;
+        },
+        this.#isTemplateLoading ? 800 : 50,
+      ); // Longer delay during template loading
     }
   }
 
@@ -215,11 +221,13 @@ export class WorkbenchStore {
     if (currentDocument) {
       const previousUnsavedFiles = this.unsavedFiles.get();
 
-      if (unsavedChanges && previousUnsavedFiles.has(currentDocument.filePath)) {
+      // Check if previousUnsavedFiles exists and has the current file path
+      if (unsavedChanges && previousUnsavedFiles && previousUnsavedFiles.has(currentDocument.filePath)) {
         return;
       }
 
-      const newUnsavedFiles = new Set(previousUnsavedFiles);
+      // Create a new set, defaulting to empty set if previousUnsavedFiles is undefined
+      const newUnsavedFiles = new Set(previousUnsavedFiles || []);
 
       if (unsavedChanges) {
         newUnsavedFiles.add(currentDocument.filePath);
