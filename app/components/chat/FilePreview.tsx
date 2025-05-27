@@ -16,7 +16,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ files, imageDataList, onRemov
   };
 
   return (
-    <div className="flex flex-row overflow-x-auto -mt-2">
+    <div className="flex flex-row overflow-x-auto -mt-2 mb-2">
       {files.map((file, index) => (
         <div key={file.name + file.size} className="mr-2 relative">
           <div className="relative pt-4 pr-4">
