@@ -6,6 +6,10 @@ export const MAX_TOKENS = 64000;
 
 // Map of models to their maximum context window sizes
 export const MODEL_MAX_TOKENS: Record<string, number> = {
+  // Claude 4 models (with max output token limits)
+  'claude-opus-4-20250514': 100000,
+  'claude-sonnet-4-20250514': 100000,
+  
   // Claude models (output token limits)
   'claude-3-7-sonnet-20250219': 64000,
   'claude-3-5-sonnet-latest': 64000,

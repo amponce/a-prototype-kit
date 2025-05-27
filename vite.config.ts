@@ -94,6 +94,10 @@ export default defineConfig((config) => {
     build: {
       target: 'esnext',
     },
+    optimizeDeps: {
+      include: ['pdfjs-dist', 'pdfjs-dist/legacy/build/pdf.mjs', 'pdfjs-dist/legacy/build/pdf.worker.mjs'],
+      exclude: [],
+    },
     plugins: [
       nodePolyfills({
         include: ['buffer', 'process', 'util', 'stream'],
