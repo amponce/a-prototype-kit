@@ -26,6 +26,8 @@ import { SpeechRecognitionButton } from '~/components/chat/SpeechRecognition';
 import type { ProviderInfo } from '~/types/model';
 import { ScreenshotStateManager } from './ScreenshotStateManager';
 import { toast } from 'react-toastify';
+import { PDFDebugView } from './PDFDebugView';
+import type { ProcessedFile } from '~/utils/pdfUtils';
 
 // import StarterTemplates from './StarterTemplates';
 import type { ActionAlert, SupabaseAlert, DeployAlert } from '~/types/actions';
@@ -66,9 +68,9 @@ interface BaseChatProps {
   importChat?: (description: string, messages: Message[]) => Promise<void>;
   exportChat?: () => void;
   uploadedFiles?: File[];
-  setUploadedFiles?: (files: File[]) => void;
+  setUploadedFiles?: React.Dispatch<React.SetStateAction<File[]>>;
   imageDataList?: string[];
-  setImageDataList?: (dataList: string[]) => void;
+  setImageDataList?: React.Dispatch<React.SetStateAction<string[]>>;
   actionAlert?: ActionAlert;
   clearAlert?: () => void;
   supabaseAlert?: SupabaseAlert;
@@ -126,8 +128,8 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const [isModelLoading, setIsModelLoading] = useState<string | undefined>('all');
     const [apiKeyMissing, setApiKeyMissing] = useState(false);
     const [progressAnnotations, setProgressAnnotations] = useState<ProgressAnnotation[]>([]);
-    
-    
+    const [processedPDFs, setProcessedPDFs] = useState<ProcessedFile[]>([]);
+    const [showPDFDebug, setShowPDFDebug] = useState(false);
     useEffect(() => {
       if (data) {
         const progressList = data.filter(
@@ -272,20 +274,32 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
     const handleFileUpload = () => {
       const input = document.createElement('input');
       input.type = 'file';
-      input.accept = 'image/*';
+      input.accept = 'image/*,application/pdf,.pdf';
 
       input.onchange = async (e) => {
         const file = (e.target as HTMLInputElement).files?.[0];
 
         if (file) {
-          const reader = new FileReader();
+          try {
+            const pdfUtils = await import('~/utils/pdfUtils');
+            const processedFile = await pdfUtils.processUploadedFile(file);
 
-          reader.onload = (e) => {
-            const base64Image = e.target?.result as string;
-            setUploadedFiles?.([...uploadedFiles, file]);
-            setImageDataList?.([...imageDataList, base64Image]);
-          };
-          reader.readAsDataURL(file);
+            setUploadedFiles?.((prev) => [...prev, file]);
+
+            if (processedFile.type === 'image') {
+              setImageDataList?.((prev) => [...prev, processedFile.content]);
+            } else if (processedFile.type === 'pdf') {
+              // Store the processed PDF for debug view
+              setProcessedPDFs((prev) => [...prev, processedFile]);
+              
+              // For PDFs, we'll append the extracted text to the message
+              const pdfContext = `\n\n[Attached PDF: ${processedFile.fileName}]\n${processedFile.content}\n[End of PDF]\n`;
+              setImageDataList?.((prev) => [...prev, pdfContext]);
+            }
+          } catch (error) {
+            console.error('Error processing file:', error);
+            toast.error('Failed to process file. Please try again.');
+          }
         }
       };
 
@@ -300,20 +314,32 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
       }
 
       for (const item of items) {
-        if (item.type.startsWith('image/')) {
+        if (item.type.startsWith('image/') || item.type === 'application/pdf') {
           e.preventDefault();
 
           const file = item.getAsFile();
 
           if (file) {
-            const reader = new FileReader();
+            try {
+              const pdfUtils = await import('~/utils/pdfUtils');
+              const processedFile = await pdfUtils.processUploadedFile(file);
 
-            reader.onload = (e) => {
-              const base64Image = e.target?.result as string;
-              setUploadedFiles?.([...uploadedFiles, file]);
-              setImageDataList?.([...imageDataList, base64Image]);
-            };
-            reader.readAsDataURL(file);
+              setUploadedFiles?.((prev) => [...prev, file]);
+
+              if (processedFile.type === 'image') {
+                setImageDataList?.((prev) => [...prev, processedFile.content]);
+              } else if (processedFile.type === 'pdf') {
+                // Store the processed PDF for debug view
+                setProcessedPDFs((prev) => [...prev, processedFile]);
+                
+                // For PDFs, we'll append the extracted text to the message
+                const pdfContext = `\n\n[Attached PDF: ${processedFile.fileName}]\n${processedFile.content}\n[End of PDF]\n`;
+                setImageDataList?.((prev) => [...prev, pdfContext]);
+              }
+            } catch (error) {
+              console.error('Error processing pasted file:', error);
+              toast.error('Failed to process pasted file. Please try again.');
+            }
           }
 
           break;
@@ -477,23 +503,34 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
                         e.preventDefault();
                         e.currentTarget.style.border = '1px solid var(--bolt-elements-borderColor)';
                       }}
-                      onDrop={(e) => {
+                      onDrop={async (e) => {
                         e.preventDefault();
                         e.currentTarget.style.border = '1px solid var(--bolt-elements-borderColor)';
 
                         const files = Array.from(e.dataTransfer.files);
-                        files.forEach((file) => {
-                          if (file.type.startsWith('image/')) {
-                            const reader = new FileReader();
 
-                            reader.onload = (e) => {
-                              const base64Image = e.target?.result as string;
-                              setUploadedFiles?.([...uploadedFiles, file]);
-                              setImageDataList?.([...imageDataList, base64Image]);
-                            };
-                            reader.readAsDataURL(file);
+                        for (const file of files) {
+                          try {
+                            const pdfUtils = await import('~/utils/pdfUtils');
+
+                            if (pdfUtils.isImageFile(file) || pdfUtils.isPDFFile(file)) {
+                              const processedFile = await pdfUtils.processUploadedFile(file);
+
+                              setUploadedFiles?.((prev) => [...prev, file]);
+
+                              if (processedFile.type === 'image') {
+                                setImageDataList?.((prev) => [...prev, processedFile.content]);
+                              } else if (processedFile.type === 'pdf') {
+                                // For PDFs, we'll append the extracted text to the message
+                                const pdfContext = `\n\n[Attached PDF: ${processedFile.fileName}]\n${processedFile.content}\n[End of PDF]\n`;
+                                setImageDataList?.((prev) => [...prev, pdfContext]);
+                              }
+                            }
+                          } catch (error) {
+                            console.error('Error processing file:', error);
+                            toast.error(`Failed to process ${file.name}. Please try again.`);
                           }
-                        });
+                        }
                       }}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') {
@@ -632,6 +669,41 @@ export const BaseChat = React.forwardRef<HTMLDivElement, BaseChatProps>(
             )}
           </ClientOnly>
         </div>
+        
+        {/* PDF Debug Toggle - Fixed at bottom left */}
+        {processedPDFs.length > 0 && (
+          <button
+            onClick={() => setShowPDFDebug(!showPDFDebug)}
+            className={classNames(
+              "fixed bottom-4 left-4 z-50",
+              "px-3 py-1.5 text-xs font-medium",
+              "bg-gray-200 dark:bg-gray-800",
+              "text-gray-700 dark:text-gray-300",
+              "hover:bg-gray-300 dark:hover:bg-gray-700",
+              "rounded-md shadow-sm",
+              "transition-all duration-200",
+              "border border-gray-300 dark:border-gray-600"
+            )}
+          >
+            {showPDFDebug ? 'Hide' : 'Show'} PDF Debug ({processedPDFs.length})
+          </button>
+        )}
+        
+        {/* PDF Debug Views */}
+        {showPDFDebug && processedPDFs.length > 0 && (
+          <div className="fixed bottom-16 left-4 z-40 max-w-2xl w-full max-h-[70vh] overflow-y-auto">
+            {processedPDFs.map((pdf, index) => (
+              <div key={index} className="mb-4">
+                <PDFDebugView
+                  fileName={pdf.fileName}
+                  fullContent={pdf.fullContent || ''}
+                  processedContent={pdf.content}
+                  formFieldsCount={pdf.formFieldsCount}
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     );
 

@@ -348,12 +348,21 @@ export const ChatImpl = memo(
                   content: [
                     {
                       type: 'text',
-                      text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${messageContent}`,
+                      text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${messageContent}${imageDataList.filter((data) => typeof data === 'string' && data.includes('[Attached PDF:')).join('')}`,
                     },
-                    ...imageDataList.map((imageData) => ({
-                      type: 'image',
-                      image: imageData,
-                    })),
+                    ...imageDataList
+                      .map((data) => {
+                        if (typeof data === 'string' && data.includes('[Attached PDF:')) {
+                          // PDF content is already part of the text, no need to add it separately
+                          return null;
+                        }
+
+                        return {
+                          type: 'image',
+                          image: data,
+                        };
+                      })
+                      .filter(Boolean),
                   ] as any,
                 },
                 {
@@ -393,12 +402,21 @@ export const ChatImpl = memo(
             content: [
               {
                 type: 'text',
-                text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${messageContent}`,
+                text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${messageContent}${imageDataList.filter((data) => typeof data === 'string' && data.includes('[Attached PDF:')).join('')}`,
               },
-              ...imageDataList.map((imageData) => ({
-                type: 'image',
-                image: imageData,
-              })),
+              ...imageDataList
+                .map((data) => {
+                  if (typeof data === 'string' && data.includes('[Attached PDF:')) {
+                    // PDF content is already part of the text, no need to add it separately
+                    return null;
+                  }
+
+                  return {
+                    type: 'image',
+                    image: data,
+                  };
+                })
+                .filter(Boolean),
             ] as any,
           },
         ]);
@@ -432,12 +450,21 @@ export const ChatImpl = memo(
           content: [
             {
               type: 'text',
-              text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${userUpdateArtifact}${messageContent}`,
+              text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${userUpdateArtifact}${messageContent}${imageDataList.filter((data) => typeof data === 'string' && data.includes('[Attached PDF:')).join('')}`,
             },
-            ...imageDataList.map((imageData) => ({
-              type: 'image',
-              image: imageData,
-            })),
+            ...imageDataList
+              .map((data) => {
+                if (typeof data === 'string' && data.includes('[Attached PDF:')) {
+                  // PDF content is already part of the text, no need to add it separately
+                  return null;
+                }
+
+                return {
+                  type: 'image',
+                  image: data,
+                };
+              })
+              .filter(Boolean),
           ] as any,
         });
 
@@ -448,12 +475,21 @@ export const ChatImpl = memo(
           content: [
             {
               type: 'text',
-              text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${messageContent}`,
+              text: `[Model: ${selectedModel}]\n\n[Provider: ${selectedProvider}]\n\n${messageContent}${imageDataList.filter((data) => typeof data === 'string' && data.includes('[Attached PDF:')).join('')}`,
             },
-            ...imageDataList.map((imageData) => ({
-              type: 'image',
-              image: imageData,
-            })),
+            ...imageDataList
+              .map((data) => {
+                if (typeof data === 'string' && data.includes('[Attached PDF:')) {
+                  // PDF content is already part of the text, no need to add it separately
+                  return null;
+                }
+
+                return {
+                  type: 'image',
+                  image: data,
+                };
+              })
+              .filter(Boolean),
           ] as any,
         });
       }

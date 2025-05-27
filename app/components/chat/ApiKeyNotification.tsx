@@ -9,31 +9,17 @@ interface ApiKeyNotificationProps {
 
 export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ providerName }) => {
   const [isDismissed, setIsDismissed] = useState(false);
-  const apiKeys = useStore(selectedApiKeysStore);
-  
+
   const storageKey = `dismissed_api_key_notification_${providerName}`;
 
-  // Check if notification was previously dismissed or if API key exists
+  // Check if notification was previously dismissed
   useEffect(() => {
-    try {
-      // Check if previously dismissed
-      const wasDismissed = localStorage.getItem(storageKey) === 'true';
-      
-      // Check if API key exists in store
-      const hasApiKey = !!apiKeys && apiKeys[providerName] && apiKeys[providerName].length > 0;
-      
-      // Check if API key exists in cookies (in case store isn't initialized yet)
-      const storedApiKeysString = Cookies.get('apiKeys');
-      const storedApiKeys = storedApiKeysString ? JSON.parse(storedApiKeysString) : {};
-      const hasApiKeyInCookies = !!storedApiKeys[providerName] && storedApiKeys[providerName].length > 0;
-      
-      if (wasDismissed || hasApiKey || hasApiKeyInCookies) {
-        setIsDismissed(true);
-      }
-    } catch (e) {
-      console.error('Error checking notification state:', e);
+    const wasDismissed = localStorage.getItem(storageKey) === 'true';
+
+    if (wasDismissed) {
+      setIsDismissed(true);
     }
-  }, [storageKey, apiKeys, providerName]);
+  }, [storageKey, providerName]);
 
   const handleDismiss = () => {
     setIsDismissed(true);
@@ -64,6 +50,7 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
           <p className="text-sm text-bolt-elements-textSecondary mb-2">
             To use {providerName}, please add your API key in settings. Without an API key, you won't be able to use the
             AI features.
+<<<<<<< HEAD
           </p>
           <p className="text-sm font-medium text-blue-500 mb-2">
             Click the settings gear icon ⚙️ in the bottom left corner to add your API key
