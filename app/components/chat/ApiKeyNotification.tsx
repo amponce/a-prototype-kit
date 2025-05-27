@@ -50,7 +50,6 @@ export const ApiKeyNotification: React.FC<ApiKeyNotificationProps> = ({ provider
           <p className="text-sm text-bolt-elements-textSecondary mb-2">
             To use {providerName}, please add your API key in settings. Without an API key, you won't be able to use the
             AI features.
-<<<<<<< HEAD
           </p>
           <p className="text-sm font-medium text-blue-500 mb-2">
             Click the settings gear icon ⚙️ in the bottom left corner to add your API key

@@ -104,14 +104,14 @@ export const PDFDebugView: React.FC<PDFDebugViewProps> = ({
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-4">
               <Button
-                variant={!showFullContent ? 'primary' : 'secondary'}
+                variant={!showFullContent ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setShowFullContent(false)}
               >
                 Processed Content
               </Button>
               <Button
-                variant={showFullContent ? 'primary' : 'secondary'}
+                variant={showFullContent ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setShowFullContent(true)}
               >
