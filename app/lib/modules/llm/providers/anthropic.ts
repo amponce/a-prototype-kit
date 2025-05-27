@@ -87,7 +87,7 @@ export default class AnthropicProvider extends BaseProvider {
       name: m.id,
       label: `${m.display_name}`,
       provider: this.name,
-      maxTokenAllowed: 60000,
+      maxTokenAllowed: 120000,
     }));
   }
 
