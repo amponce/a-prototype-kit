@@ -257,8 +257,9 @@ This PDF contains form fields that need to be carefully preserved. When building
    - Use separate dropdowns for month/day/year if specified as separate fields
    - Add placeholder text showing the expected format (e.g., "MM/DD/YYYY")
    - Add pattern validation but DO NOT make them required
-9. Always run npm install before attempting to run the code
-10. Use npm run dev after running npm install
+9. REMOVE ALL VALIDATION AND REQUIRED ATTRIBUTES FROM DATE FIELDS.
+10. Always run npm install before attempting to run the code
+11. Use npm run dev after running npm install
 =========================`;
     
     return {
